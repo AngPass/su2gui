@@ -625,8 +625,6 @@ def update_variables_main_selection(variables_main_selection, **kwargs):
 def update_variables_list(variables, **kwargs):
     """Update the variables list for the UI when variables change."""
     variables_list = []
-    print(state.variables_list)
-    print(state.variables)
     if hasattr(variables, '__iter__') and not isinstance(variables, bool) and isinstance(variables, dict):
         for name, var in variables.items():
             if isinstance(var, dict):  # Make sure var is a dictionary

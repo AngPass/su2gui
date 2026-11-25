@@ -8,8 +8,9 @@ from pathlib import Path
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+from core.paths import case_dir, cases_root, is_case_dir, is_valid_case_name, list_cases, mark_case_dir
 
-from trame.widgets import markdown
+from trame.widgets import markdown, html
 from trame.widgets import vuetify
 
 from ui.fileio import set_json_fileio
@@ -30,8 +31,7 @@ from core.su2_py_wrapper import save_json_cfg_py_file, generate_python_wrapper
 
 from pathlib import Path
 BASE = Path(__file__).parent.parent
-user_path = BASE / "user"
-# user_path = "../../user"
+# the cases are in core.paths.cases_root() (--cases-dir / SU2GUI_CASES_DIR)
 
 
 state, ctrl = server.state, server.controller
@@ -42,6 +42,15 @@ state.show_manage_case_dialog_card = False
 state.case_name = ''
 state.case_name_help = ""
 state.case_list = []
+# full path of the active case and of the cases folder (shown in the GUI)
+state.case_path = ""
+state.cases_root_path = str(cases_root())
+
+
+@state.change("case_name")
+def update_case_path(case_name, **kwargs):
+    state.case_path = str(case_dir(case_name)) if case_name else ""
+    state.cases_root_path = str(cases_root())
 
 
 ############# DIALOG CARDS ##############
@@ -73,6 +82,20 @@ def manage_case_dialog_card():
                                 content=("case_name || 'None'", state.case_name),
                                 style="color:black; background-color:white; "
                                 )
+
+                # where the cases are stored on the server
+                with vuetify.VRow(dense=True):
+                    with vuetify.VCol(classes='col-3'):
+                        html.Div("Case folder:", style="color:black;")
+                    with vuetify.VCol():
+                        html.Div("{{ case_path || '-' }}",
+                                 style="font-family: monospace; word-break: break-all; color:black;")
+                with vuetify.VRow(dense=True):
+                    with vuetify.VCol(classes='col-3'):
+                        html.Div("All cases in:", style="color:black;")
+                    with vuetify.VCol():
+                        html.Div("{{ cases_root_path }}",
+                                 style="font-family: monospace; word-break: break-all; color:black;")
 
                 with vuetify.VRow():
                     with vuetify.VCol():
@@ -194,9 +217,12 @@ def delete_case(case_name):
         return
     if case_name is None or case_name == '' or case_name == state.case_name:
         return
-    # delete the single case
+    # delete the single case, only if it is a case directory created by SU2GUI
+    if not is_valid_case_name(case_name) or not is_case_dir(case_dir(case_name)):
+        log("error", f"'{case_name}' is not an SU2GUI case directory, it was not deleted.")
+        return
     log('info', f'case name = {case_name}')
-    case_path = os.path.join(user_path, case_name)
+    case_path = case_dir(case_name)
     try:
         shutil.rmtree(case_path)
         log("info", f"Case '{case_name}' deleted successfully.")
@@ -221,7 +247,7 @@ def download_case():
             # save the cfg file
             save_json_cfg_file(state.filename_json_export,state.filename_cfg_export)
 
-            case_path = os.path.join(user_path, case_name)
+            case_path = case_dir(case_name)
             if case_name == '':
                 log("Error", "No case selected.")
                 return
@@ -238,7 +264,7 @@ def download_case():
 
         # if select_all_cases is True, download all cases
         else:
-            case_path = user_path
+            case_path = cases_root()
 
             # check if the case path exists
             if not os.path.isdir(case_path):
@@ -274,25 +300,35 @@ def create_new_case():
         for case in state.case_list:
             delete_case(case)
 
-    if state.new_case_name is None or state.new_case_name == "":
+    new_name = (state.new_case_name or "").strip().replace(" ", "_")
+
+    if new_name == "":
         state.case_name_help = "> Please enter a valid case name."
 
-    elif state.new_case_name in state.case_list:
+    elif not is_valid_case_name(new_name):
+        state.case_name_help = "> The case name cannot contain '/', '\\' or start with '.'."
+
+    elif new_name in state.case_list:
         state.case_name_help = "> Case name already exists.  \nPlease enter a different name."
+
+    elif case_dir(new_name).exists():
+        # a file or folder that is not an SU2GUI case: do not write into it
+        state.case_name_help = f"> '{case_dir(new_name)}' already exists and is not an SU2GUI case.  \nPlease enter a different name."
 
     else:
 
         state.show_case_name_dialog = False
         reset_values()
-        state.case_name = state.new_case_name.replace(" ", "_")
+        state.case_name = new_name
         try:
-            os.makedirs(os.path.join(BASE, "user", state.case_name))
-            log("info", f"Case '{state.case_name}' created successfully.")
+            mark_case_dir(case_dir(state.case_name))
+            log("info", f"Case '{state.case_name}' created in {case_dir(state.case_name)}")
         except OSError as e:
-            log("Warn", f"Case '{state.case_name}' already existed.  \n{e}")
+            log("error", f"Could not create the case directory {case_dir(state.case_name)}:  \n{e}")
+            return
 
         # create history file
-        with open(BASE / "user" / state.case_name / state.history_filename, 'w') as f:
+        with open(case_dir(state.case_name) / state.history_filename, 'w') as f:
             f.write('"Time_Iter","Outer_Iter","Inner_Iter",     "rms[P]"     ,     "rms[U]"     ,     "rms[V]"     ,     "rms[T]"     ,     "rms[nu]"    ')
 
         log("info", f"Case name set to {state.case_name}")
@@ -325,7 +361,7 @@ def load_case(case_name):
     state.show_manage_case_dialog_card = False
     state.show_case_name_dialog = False
     reset_values()
-    case_path = os.path.join(user_path, case_name)
+    case_path = case_dir(case_name)
 
     # get the list of files in the case path
     root, dirs, filenames = os.walk(case_path).__next__()
@@ -421,7 +457,7 @@ def load_case(case_name):
 # Button to download the specific output files (currently not is use)
 @ctrl.trigger("download_output_files")
 def download_outputs():
-    files_directory = BASE / "user" / state.case_name
+    files_directory = case_dir(state.case_name)
 
     save_json_cfg_file(state.filename_json_export,state.filename_cfg_export)
     save_su2mesh(root,state.jsonData['MESH_FILENAME'])
@@ -445,13 +481,11 @@ def download_outputs():
 
 #############################################
 
-# get the names of folders under './user' and set case names list
+# get the names of the case folders in the cases root and set case names list
 def set_cases_list():
-    try:
-        contents = os.listdir(user_path)
-        state.case_list = [item for item in contents if os.path.isdir(os.path.join(user_path, item))]
-    except FileNotFoundError:
-        log('error', f"Path to User Folder not found: '{user_path}'")
+    if not cases_root().is_dir():
+        log('error', f"Cases folder not found: '{cases_root()}'")
+    state.case_list = list_cases()
     log('info', f"Cases list = {state.case_list}")
 
 # function to start case from the terminal

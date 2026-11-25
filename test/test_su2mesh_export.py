@@ -119,14 +119,22 @@ def build_multiblock(parsed):
 
 @unittest.skipIf(vtk is None, "VTK not available")
 class TestSaveSu2Mesh(unittest.TestCase):
+    def setUp(self):
+        from core import paths
+        self._saved_root = paths._cases_root
+
+    def tearDown(self):
+        from core import paths
+        paths._cases_root = self._saved_root
+
     def test_round_trip(self):
-        from core import su2_io
+        from core import su2_io, paths
 
         original = parse_su2(find_su2_mesh())
         root = build_multiblock(original)
 
         with tempfile.TemporaryDirectory() as tmp:
-            su2_io.BASE = Path(tmp)
+            paths.set_cases_root(Path(tmp) / "user")
             (Path(tmp) / "user" / "case").mkdir(parents=True)
             su2_io.state = types.SimpleNamespace(nDim=original["ndim"], case_name="case")
             su2_io.save_su2mesh(root, "mesh_out.su2")
@@ -138,12 +146,12 @@ class TestSaveSu2Mesh(unittest.TestCase):
         self.assertEqual(exported["markers"], original["markers"])
 
     def test_multiple_interior_blocks_are_refused(self):
-        from core import su2_io
+        from core import su2_io, paths
 
         root = build_multiblock(parse_su2(SMALL_MESH))
         root.GetBlock(0).SetBlock(1, vtk.vtkUnstructuredGrid())
         with tempfile.TemporaryDirectory() as tmp:
-            su2_io.BASE = Path(tmp)
+            paths.set_cases_root(Path(tmp) / "user")
             (Path(tmp) / "user" / "case").mkdir(parents=True)
             su2_io.state = types.SimpleNamespace(nDim=2, case_name="case")
             su2_io.save_su2mesh(root, "mesh_out.su2")

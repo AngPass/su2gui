@@ -8,6 +8,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+from core.paths import case_dir, cases_root
 
 from ui.uicard import server
 from trame.widgets import vuetify, markdown
@@ -110,8 +111,14 @@ def add_new_logs(msg):
 
 # Clear previous logs in the LOGS -> SU2GUI Tab and start fresh
 def clear_logs():
-    with open(BASE / "user" / state.case_name / 'su2gui.log', 'w') as f:
-        f.write('')
+    # without an active case this is the global log of the installation (user/su2gui.log)
+    from core.paths import APP_USER_DIR
+    log_dir = case_dir(state.case_name) if state.case_name else APP_USER_DIR
+    try:
+        with open(log_dir / 'su2gui.log', 'w') as f:
+            f.write('')
+    except OSError:
+        pass
     state.last_modified_su2gui_log_len = 0
     state.su2_logs = ""
     state.show_error_dialog_card = False
@@ -155,7 +162,7 @@ def download_su2gui_log():
 # Update the SU2 logs in the LOGS -> SU2 Tab
 # called by asyn function start_countdown in solver.py
 def update_su2_logs():
-    file = BASE / "user" / state.case_name / 'su2.out'
+    file = case_dir(state.case_name) / 'su2.out'
     try:
         with open(file, 'r') as f:
             # Move the file pointer to the last read position

@@ -566,7 +566,8 @@ class SU2ConfigValidator:
             from core.su2_json import state
             from core.logger import log
             
-            config_path = self.base_path / "user" / state.case_name / filename_cfg
+            from core.paths import case_dir
+            config_path = case_dir(state.case_name) / filename_cfg
             
             # Perform validation
             validation_result = self.validate_config_file(str(config_path))

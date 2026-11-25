@@ -46,6 +46,8 @@ from vtkmodules.util.numpy_support import numpy_to_vtk
 
 # SU2 (develop) file conventions: file names, restart formats, history fields
 from core import su2_files
+# location of the cases (--cases-dir / SU2GUI_CASES_DIR)
+from core import paths
 
 # import the grid from the mesh module
 from ui.mesh import *
@@ -184,19 +186,19 @@ def dialog_card():
           vuetify.VBtn("Close", classes="mt-5",click=update_dialog)
 
 
-def case_dir():
+def active_case_dir():
     """Directory of the active case."""
-    return BASE / "user" / state.case_name
+    return paths.case_dir(state.case_name)
 
 
 def history_path():
     """History file written by SU2 for the current configuration."""
-    return case_dir() / su2_files.history_filename(state.jsonData)
+    return active_case_dir() / su2_files.history_filename(state.jsonData)
 
 
 def restart_path():
     """Most recent restart file written by SU2 for the current configuration."""
-    return su2_files.latest_restart_path(case_dir(), state.jsonData)
+    return su2_files.latest_restart_path(active_case_dir(), state.jsonData)
 
 
 def _file_signature(path):
@@ -508,10 +510,10 @@ def su2_play():
 
         # run SU2_CFD with config.cfg
         try:
-            with open(case_dir() / "su2.out", "w") as outfile:
-                with open(case_dir() / "su2.err", "w") as errfile:
+            with open(active_case_dir() / "su2.out", "w") as outfile:
+                with open(active_case_dir() / "su2.err", "w") as errfile:
                     proc_SU2 = subprocess.Popen([su2_cfd_path, state.filename_cfg_export],
-                                                cwd=case_dir(),
+                                                cwd=active_case_dir(),
                                                 text=True,
                                                 stdout=outfile,
                                                 stderr=errfile
@@ -592,7 +594,7 @@ def _apply_validation_fixes(result):
 
 def _run_validation(log_issues):
     """Validate the saved cfg, update the validation panel and apply auto-fixes if enabled."""
-    cfg_path = str(case_dir() / state.filename_cfg_export)
+    cfg_path = str(active_case_dir() / state.filename_cfg_export)
     auto_fix = bool(state.apply_auto_fixes)
     validator = SU2ConfigValidator()
     result = validator.validate_config_file(cfg_path, auto_fix=auto_fix)
@@ -893,8 +895,8 @@ def uploadRestart(restartFile, **kwargs):
   # SU2 reads GetFilename(SOLUTION_FILENAME, ".dat"/".csv"): the file on disk must
   # carry the extension that matches the format.
   stored_name = su2_files.solution_filename_for(filename, binary)
-  case_dir().mkdir(parents=True, exist_ok=True)
-  file_path = case_dir() / stored_name
+  active_case_dir().mkdir(parents=True, exist_ok=True)
+  file_path = active_case_dir() / stored_name
 
   try:
     with open(file_path, 'wb') as f:

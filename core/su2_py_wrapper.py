@@ -8,6 +8,11 @@ import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
+try:
+    from core.paths import case_dir
+except ModuleNotFoundError:
+    def case_dir(case_name):
+        return Path(__file__).resolve().parent.parent / "user" / str(case_name)
 
 
 try:
@@ -98,7 +103,7 @@ def generate_python_wrapper(
 
     # decide where to put the result
     if output_dir is None:
-        output_dir = BASE_DIR / "user" / state.case_name
+        output_dir = case_dir(state.case_name)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -194,7 +199,7 @@ def generate_dynamic_temperature_wrapper(
     
     # 
     if output_dir is None:
-        output_dir = BASE_DIR / "user" / state.case_name
+        output_dir = case_dir(state.case_name)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -355,25 +360,29 @@ def save_json_cfg_py_file(
     derived_parameters = derived_parameters or {}
     dynamic_wall_temp_markers = dynamic_wall_temp_markers or {}
 
-    export_dir = BASE_DIR / "user" / state.case_name
+    export_dir = case_dir(state.case_name)
     export_dir.mkdir(parents=True, exist_ok=True)
 
-    # -------- JSON --------------------------------------------------------
-    json_path = export_dir / Path(filename_json_export).with_suffix(".json")
-    with json_path.open("w", encoding="utf-8") as fp:
-        json.dump(state.jsonData, fp, indent=4, sort_keys=True, ensure_ascii=False)
-    log("info", f"Wrote JSON     {json_path}")
-
-    # -------- CFG ---------------------------------------------------------
-    cfg_path = export_dir / Path(filename_cfg_export).with_suffix(".cfg")
-    with cfg_path.open("w", encoding="utf-8") as fp:
-        fp.write(f"{state.config_desc}\n")
-        for k, v in state.jsonData.items():
-            cfg_val = _to_cfg_value(v, variables)
-            if cfg_val is None:
-                continue
-            fp.write(f"{k}= {cfg_val}\n")
-    log("info", f"Wrote .cfg     {cfg_path}")
+    # -------- JSON + CFG ----------------------------------------------------
+    # same writer as the GUI (markers from the boundary conditions, variables
+    # substituted in the .cfg), so all the .cfg files of a case are identical
+    json_name = Path(filename_json_export).with_suffix(".json").name
+    cfg_name = Path(filename_cfg_export).with_suffix(".cfg").name
+    try:
+        from core.su2_io import write_case_configuration
+        for path in write_case_configuration(json_name, cfg_name, variables=variables):
+            log("info", f"Wrote {path}")
+    except ImportError:
+        # standalone use without the GUI modules
+        with (export_dir / json_name).open("w", encoding="utf-8") as fp:
+            json.dump(state.jsonData, fp, indent=4, sort_keys=True, ensure_ascii=False)
+        with (export_dir / cfg_name).open("w", encoding="utf-8") as fp:
+            fp.write(f"{state.config_desc}\n")
+            for k, v in state.jsonData.items():
+                cfg_val = _to_cfg_value(v, variables)
+                if cfg_val is None:
+                    continue
+                fp.write(f"{k}= {cfg_val}\n")
     
     
     python_wrapper_path = None    

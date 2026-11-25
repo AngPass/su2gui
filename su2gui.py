@@ -119,9 +119,15 @@ from ui.initialization import *
 from ui.fileio import *
 # gittree menu : import variables tab                                        #
 from ui.variables import *
+# where the cases are stored (--cases-dir / SU2GUI_CASES_DIR) and the cfg writer
+from core.paths import case_dir, cases_root, set_cases_root
+from core.su2_io import write_case_configuration, _write_if_changed
+from trame.app import asynchronous
+from datetime import datetime as _datetime
 # server-side file browser (files of the machine running SU2GUI)
 from ui.server_files import (register_server_file_target, server_browser_dialog,
-                             server_file_button, set_server_browser_root)
+                             server_file_button, set_server_browser_root,
+                             add_server_browser_places)
 #############################################################################
 
 
@@ -1147,6 +1153,17 @@ def load_file_su2(su2_file_upload, **kwargs):
 
     resetCamera()
 
+    # keep a copy of the mesh in the case folder and use it in the configuration,
+    # so that the case folder contains everything SU2 needs
+    try:
+        mesh_name = os.path.basename(su2_file_upload.get("name") or "mesh.su2")
+        mesh_text = filecontent if isinstance(filecontent, str) else filecontent.decode('utf-8', errors='replace')
+        if _write_if_changed(case_dir(state.case_name) / mesh_name, mesh_text):
+            log("info", f"Mesh saved in {case_dir(state.case_name) / mesh_name}")
+        state.jsonData['MESH_FILENAME'] = mesh_name
+    except Exception as e:
+        log("warn", f"Could not copy the mesh into the case folder: {e}")
+
     update_config_str()
     state.dirty('restartFile')
 
@@ -1781,6 +1798,50 @@ register_server_file_target("restart", "Load restart / solution file", [".dat", 
                             _upload_handler(uploadRestart, "restartFile"))
 
 # -----------------------------------------------------------------------------
+# Autosave: the .cfg/.json of the active case are rewritten as soon as the
+# configuration changes (checked every AUTOSAVE_INTERVAL seconds; a file is only
+# written when its content is different).
+# -----------------------------------------------------------------------------
+AUTOSAVE_INTERVAL = 2.0
+state.autosave_status = ""
+_autosave_error = None
+
+
+def autosave_now():
+    global _autosave_error
+    if not state.case_name:
+        state.autosave_status = "No case: the configuration is not saved"
+        return
+    try:
+        written = write_case_configuration(state.filename_json_export, state.filename_cfg_export,
+                                           update_state=False)
+        _autosave_error = None
+    except Exception as e:
+        if str(e) != _autosave_error:
+            log("error", f"Autosave of the configuration failed: {e}")
+        _autosave_error = str(e)
+        state.autosave_status = f"Autosave failed: {e}"
+        return
+    if written:
+        names = ", ".join(p.name for p in written)
+        state.autosave_status = f"Saved {names} at {_datetime.now().strftime('%H:%M:%S')}"
+        # keep the Config tab in sync with the file
+        update_config_str()
+    elif not state.autosave_status or state.autosave_status.startswith(("No case", "Autosave failed")):
+        state.autosave_status = f"Configuration up to date ({state.filename_cfg_export})"
+
+
+@asynchronous.task
+async def _autosave_loop():
+    while True:
+        await asyncio.sleep(AUTOSAVE_INTERVAL)
+        with state:
+            autosave_now()
+
+
+ctrl.on_server_ready.add(lambda **kwargs: _autosave_loop())
+
+# -----------------------------------------------------------------------------
 # Web App setup
 # -----------------------------------------------------------------------------
 
@@ -1899,6 +1960,14 @@ with SinglePageWithDrawerLayout(server) as layout:
         )
         # load the configuration from the server filesystem
         server_file_button("cfg", "Load .cfg file from the server")
+
+        # active case and where it is stored on the server, with the autosave status
+        with html.Div(classes="ml-3 text-caption",
+                      style="line-height: 1.2; max-width: 420px; overflow: hidden;"):
+            html.Div("Case: {{ case_name || 'none' }}", style="font-weight: bold;")
+            html.Div("{{ case_path }}", title=("case_path",),
+                     style="font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;")
+            html.Div("{{ autosave_status }}", style="color: grey;")
 
 
         # progress inside the toolbar
@@ -2204,8 +2273,15 @@ def main():
     parser.add_argument('--clear-data', action='store_true', help='Clear all application data including saved configurations and cases.')
     parser.add_argument('-v', '--version', action='store_true', help='Print the version of SU2GUI and exit.')
     parser.add_argument('--install', action='store_true', help='Show installer on startup')
-    parser.add_argument('--browse-root', type=str, default=None,
-                        help='Restrict the server file browser to this directory (default: no restriction, starts in the home directory).')
+    parser.add_argument('--cases-dir', type=str, default=None,
+                        help='Directory where the cases are stored (default: $SU2GUI_CASES_DIR, '
+                             'otherwise the "user" folder of the SU2GUI installation). '
+                             'Use a dedicated folder, e.g. /scratch/$USER/su2gui_cases.')
+    parser.add_argument('--browse-root', type=str, action='append', default=None,
+                        help='Restrict the server file browser to this directory; repeat it to allow several '
+                             '(e.g. --browse-root ~ --browse-root /scratch/$USER). Default: no restriction.')
+    parser.add_argument('--browse-place', type=str, action='append', default=None,
+                        help='Quick-access directory in the server file browser when it is not restricted (repeatable).')
 
 
     args, unknown_args = parser.parse_known_args()
@@ -2236,11 +2312,32 @@ def main():
     if args.install:
         state.installer_dialog_visible = True
 
+    # where the cases are stored: must be set before the --case option is handled
+    if args.cases_dir:
+        try:
+            set_cases_root(args.cases_dir)
+        except OSError as e:
+            print(f"Cannot use --cases-dir {args.cases_dir}: {e}")
+            exit(1)
+    state.cases_root_path = str(cases_root())
+    print(f"Cases are stored in: {cases_root()}")
+    log("info", f"Cases are stored in: {cases_root()}")
+
     if args.browse_root:
-        if os.path.isdir(os.path.expanduser(args.browse_root)):
-            set_server_browser_root(args.browse_root)
+        roots = [r for r in args.browse_root if os.path.isdir(os.path.expanduser(r))]
+        for r in args.browse_root:
+            if r not in roots:
+                log("error", f"--browse-root {r} is not a directory and is ignored.")
+        if roots:
+            set_server_browser_root(roots)
         else:
-            log("error", f"--browse-root {args.browse_root} is not a directory, browsing is not restricted.")
+            log("error", "No valid --browse-root directory: browsing is not restricted.")
+    elif args.browse_place:
+        places = [p for p in args.browse_place if os.path.isdir(os.path.expanduser(p))]
+        for p in args.browse_place:
+            if p not in places:
+                log("error", f"--browse-place {p} is not a directory and is ignored.")
+        add_server_browser_places(places)
 
     if case:
         case_args(case)

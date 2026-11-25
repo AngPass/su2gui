@@ -50,7 +50,9 @@ def _import_server_files():
     trame = types.ModuleType("trame")
     widgets = types.ModuleType("trame.widgets")
     widgets.vuetify = types.ModuleType("trame.widgets.vuetify")
-    stubs["trame"], stubs["trame.widgets"], stubs["trame.widgets.vuetify"] = trame, widgets, widgets.vuetify
+    widgets.html = types.ModuleType("trame.widgets.html")
+    stubs["trame"], stubs["trame.widgets"] = trame, widgets
+    stubs["trame.widgets.vuetify"], stubs["trame.widgets.html"] = widgets.vuetify, widgets.html
 
     uicard = types.ModuleType("ui.uicard")
     uicard.server = types.SimpleNamespace(state=_State(), controller=types.SimpleNamespace())
@@ -153,6 +155,34 @@ class TestServerFileBrowser(unittest.TestCase):
         self.assertEqual(self.state.server_browser_dir, str(self.dir / "cases"))
         self.sf.server_browser_up()
         self.assertEqual(self.state.server_browser_dir, str(self.dir / "cases"))
+
+    def test_several_roots(self):
+        # e.g. --browse-root ~ --browse-root /scratch/$USER
+        home, scratch = self.dir / "cases", self.dir / "scratch"
+        scratch.mkdir()
+        (scratch / "run.su2").write_bytes(b"NDIME= 2\n")
+        self.sf.set_server_browser_root([home, scratch])
+        self.assertEqual([p["path"] for p in self.state.server_browser_places], [str(home), str(scratch)])
+
+        self.sf.open_server_browser("mesh")
+        self.assertEqual(self.state.server_browser_dir, str(home))  # starts in the first root
+        self.sf.server_browser_go(str(scratch))                     # quick-access button
+        self.assertEqual(self.state.server_browser_dir, str(scratch))
+        self.assertEqual(self.names(), ["run.su2"])
+        self.sf.server_browser_open_entry(str(scratch / "run.su2"), False)
+        self.assertEqual(self.loaded[0]["name"], "run.su2")
+        # the common parent is still forbidden
+        self.sf.server_browser_go(str(self.dir))
+        self.assertIn("outside", self.state.server_browser_error)
+
+    def test_places_without_restriction(self):
+        self.sf.add_server_browser_places([self.dir / "cases"])
+        paths = [p["path"] for p in self.state.server_browser_places]
+        self.assertEqual(paths, [str(Path.home().resolve()), str(self.dir / "cases")])
+        # not restricted: any directory can be opened
+        self.state.server_browser_target = "mesh"
+        self.sf.server_browser_go(str(self.dir))
+        self.assertFalse(self.state.server_browser_error)
 
 
 if __name__ == "__main__":

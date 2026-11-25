@@ -6,6 +6,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+from core.paths import case_dir, cases_root
 
 from ui.uicard import ui_card, ui_subcard, server
 from trame.widgets import vuetify
@@ -302,7 +303,7 @@ def initialize_uniform():
       solution_filename += '.csv'
 
   
-  with open(BASE / "user" / state.case_name / solution_filename,'w') as f:
+  with open(case_dir(state.case_name) / solution_filename,'w') as f:
     fields = ["PointID","x","y"]
     if (state.nDim==3):
         fields.append("z")
@@ -525,7 +526,7 @@ def initialize_patch():
   if not solution_filename.endswith('.csv'):
       solution_filename += '.csv'
 
-  with open(BASE / "user" / state.case_name / solution_filename,'w') as f:
+  with open(case_dir(state.case_name) / solution_filename,'w') as f:
     fields = ["PointID","x","y"]
     if (state.nDim==3):
         fields.append("z")

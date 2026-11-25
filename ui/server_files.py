@@ -22,7 +22,7 @@ parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-from trame.widgets import vuetify
+from trame.widgets import vuetify, html
 
 from ui.uicard import server
 from core.logger import log
@@ -35,8 +35,10 @@ MAX_ENTRIES = 2000
 # target name -> {"title", "extensions", "handler", "last_dir"}
 _targets = {}
 
-# optional directory outside of which browsing is not allowed (None: no restriction)
-_root = None
+# optional directories outside of which browsing is not allowed (empty: no restriction)
+_roots = []
+# quick-access directories shown in the dialog (the roots, or home when unrestricted)
+_places = []
 
 state.server_browser_visible = False
 state.server_browser_title = ""
@@ -47,14 +49,43 @@ state.server_browser_entries = []
 state.server_browser_error = ""
 state.server_browser_info = ""
 state.server_browser_show_all = False
+state.server_browser_places = []
 
 
-def set_server_browser_root(path):
-    """Restrict browsing to ``path`` and its subdirectories (None removes the restriction)."""
-    global _root
-    _root = Path(path).expanduser().resolve() if path else None
-    if _root is not None:
-        log("info", f"Server file browser restricted to {_root}")
+def _update_places(extra=()):
+    """Quick-access buttons: the roots if restricted, otherwise home plus ``extra``."""
+    places = list(_roots) if _roots else [Path.home()] + [Path(p).expanduser().resolve() for p in extra]
+    seen, unique = set(), []
+    for p in places:
+        if str(p) not in seen:
+            seen.add(str(p))
+            unique.append(p)
+    _places[:] = unique
+    state.server_browser_places = [{"label": str(p), "path": str(p)} for p in unique]
+
+
+def set_server_browser_root(paths):
+    """Restrict browsing to ``paths`` (a path or a list of paths) and their subdirectories.
+
+    None or an empty list removes the restriction.
+    """
+    if paths is None:
+        paths = []
+    elif isinstance(paths, (str, os.PathLike)):
+        paths = [paths]
+    _roots[:] = [Path(p).expanduser().resolve() for p in paths]
+    _update_places()
+    if _roots:
+        log("info", f"Server file browser restricted to {', '.join(str(r) for r in _roots)}")
+
+
+def add_server_browser_places(paths):
+    """Extra quick-access directories when browsing is not restricted."""
+    if not _roots:
+        _update_places(paths)
+
+
+_update_places()
 
 
 def register_server_file_target(name, title, extensions, handler):
@@ -72,19 +103,25 @@ def register_server_file_target(name, title, extensions, handler):
 
 
 def _start_dir():
-    if _root is not None:
-        return _root
+    if _roots:
+        return _roots[0]
     return Path.home()
 
 
 def _allowed(path):
-    if _root is None:
+    if not _roots:
         return True
-    try:
-        path.relative_to(_root)
-        return True
-    except ValueError:
-        return False
+    for root in _roots:
+        try:
+            path.relative_to(root)
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def _outside_message(path):
+    return f"{path} is outside of the allowed directories ({', '.join(str(r) for r in _roots)})"
 
 
 def _format_size(size):
@@ -128,7 +165,7 @@ def _show_dir(directory):
         if not directory.is_dir():
             raise NotADirectoryError(f"{directory} is not a directory")
         if not _allowed(directory):
-            raise PermissionError(f"{directory} is outside of {_root}")
+            raise PermissionError(_outside_message(directory))
         entries = _list_dir(directory, target)
     except OSError as e:
         state.server_browser_error = str(e)
@@ -195,7 +232,7 @@ def server_browser_open_entry(path, is_dir):
         return
     p = Path(path).expanduser().resolve()
     if not _allowed(p):
-        state.server_browser_error = f"{p} is outside of {_root}"
+        state.server_browser_error = _outside_message(p)
         return
     try:
         content = p.read_bytes()
@@ -261,6 +298,19 @@ def server_browser_dialog():
                         classes="mx-2",
                     )
                     vuetify.VBtn("Go", small=True, click=(server_browser_go, "[server_browser_path]"))
+
+                # quick access: allowed directories (or home + --browse-place directories)
+                with vuetify.VRow(dense=True, classes="mt-2"):
+                    with vuetify.VChip(
+                        v_for="(place, j) in server_browser_places",
+                        key="place.path",
+                        small=True,
+                        outlined=True,
+                        classes="mr-1 mb-1",
+                        click=(server_browser_go, "[place.path]"),
+                    ):
+                        vuetify.VIcon("mdi-folder-star-outline", left=True, small=True)
+                        html.Span("{{ place.label }}")
 
                 vuetify.VCheckbox(
                     v_model=("server_browser_show_all", False),

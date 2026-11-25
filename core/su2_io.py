@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import json
 from pathlib import Path
 
@@ -14,6 +15,7 @@ except ImportError:
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+from core.paths import case_dir, cases_root
 
 try:
     from core.su2_json import *
@@ -58,8 +60,21 @@ def remove_empty_lists(d):
 ########################################################################################
 # create the json entries for the boundaries using BCDictList
 ########################################################################################
-def createjsonMarkers():
-  log("info", "creating json entry for inlet")
+# Options generated from the boundary conditions. Empty lists are not written.
+MARKER_OPTION_KEYS = (
+  'MARKER_ISOTHERMAL', 'MARKER_HEATFLUX', 'MARKER_HEATTRANSFER', 'MARKER_EULER',
+  'MARKER_WALL_FUNCTIONS', 'MARKER_OUTLET', 'INC_OUTLET_TYPE', 'MARKER_SYM', 'MARKER_FAR',
+  'MARKER_INLET', 'INC_INLET_TYPE', 'INLET_TYPE', 'MARKER_SUPERSONIC_INLET',
+  'MARKER_SUPERSONIC_OUTLET',
+)
+
+
+def build_marker_options(bc_list, wall_function, warn=True):
+  """Marker options for the boundary conditions in ``bc_list`` (BCDictList).
+
+  Returns a dict {option: value}; a value of None means that the option must be
+  removed from the configuration. Pure function: the state is not modified.
+  """
   marker_inlet=[]
   marker_isothermal=[]
   marker_heatflux=[]
@@ -80,199 +95,240 @@ def createjsonMarkers():
   marker_inlet_type=[]
 
   # loop over the boundaries and construct the markers
-  for bcdict in state.BCDictList:
-    log("debug", f"bcdict =  = {bcdict}")
+  for bcdict in (bc_list or []):
+    subtype = bcdict.get('bc_subtype')
+    name = bcdict.get('bcName')
     # ##### WALL BOUNDARY CONDITIONS #####
-    if bcdict['bc_subtype']=="Temperature":
-        marker = [bcdict['bcName'], bcdict['bc_temperature']]
-        marker_isothermal.append( marker )
-        marker_wall_functions.append( [bcdict['bcName'], "STANDARD_WALL_FUNCTION"] )
-    elif bcdict['bc_subtype']=="Heat flux":
-        marker = [bcdict['bcName'], bcdict['bc_heatflux']]
-        marker_heatflux.append( [bcdict['bcName'], bcdict['bc_heatflux']] )
-        marker_wall_functions.append( [bcdict['bcName'], "STANDARD_WALL_FUNCTION"] )
-    elif bcdict['bc_subtype']=="Heat transfer":
-        marker = [bcdict['bcName']]
+    if subtype=="Temperature":
+        marker_isothermal.append( [name, bcdict['bc_temperature']] )
+        marker_wall_functions.append( [name, "STANDARD_WALL_FUNCTION"] )
+    elif subtype=="Heat flux":
+        marker_heatflux.append( [name, bcdict['bc_heatflux']] )
+        marker_wall_functions.append( [name, "STANDARD_WALL_FUNCTION"] )
+    elif subtype=="Heat transfer":
+        marker = [name]
         marker.extend(bcdict['bc_heattransfer'])
-        log("info", f"heat transfer marker= = {marker}")
         marker_heattransfer.append( marker )
-        marker_wall_functions.append( [bcdict['bcName'], "STANDARD_WALL_FUNCTION"] )
-    elif bcdict['bc_subtype']=="Euler":
+        marker_wall_functions.append( [name, "STANDARD_WALL_FUNCTION"] )
+    elif subtype=="Euler":
         # inviscid (slip) wall: no wall function, MARKER_WALL_FUNCTIONS is for viscous walls only
-        marker = [bcdict['bcName']]
-        marker_euler.append(marker)
+        marker_euler.append([name])
     # ##### OUTLET BOUNDARY CONDITIONS #####
-    elif bcdict['bc_subtype']=="Target mass flow rate":
-        marker = [bcdict['bcName'], bcdict['bc_massflow']]
-        marker_outlet.append( marker )
+    elif subtype=="Target mass flow rate":
+        marker_outlet.append( [name, bcdict['bc_massflow']] )
         marker_inc_outlet_type.append("MASS_FLOW_OUTLET")
-    elif bcdict['bc_subtype']=="Pressure outlet":
-        marker = [bcdict['bcName'], bcdict['bc_pressure']]
-        marker_outlet.append( marker )
+    elif subtype=="Pressure outlet":
+        marker_outlet.append( [name, bcdict['bc_pressure']] )
         marker_inc_outlet_type.append("PRESSURE_OUTLET")
     # ##### INLET BOUNDARY CONDITIONS #####
-    elif bcdict['bc_subtype']=="Velocity inlet":
+    elif subtype=="Velocity inlet":
         # note that temperature is always saved.
-        marker = [bcdict['bcName'], bcdict['bc_temperature'], bcdict['bc_velocity_magnitude']]
+        marker = [name, bcdict['bc_temperature'], bcdict['bc_velocity_magnitude']]
         marker.extend(bcdict['bc_velocity_normal'])
         marker_inlet.append( marker )
         marker_inc_inlet_type.append("VELOCITY_INLET")
-    elif bcdict['bc_subtype']=="Pressure inlet":
-        marker = [bcdict['bcName'], bcdict['bc_temperature'], bcdict['bc_pressure']]
+    elif subtype=="Pressure inlet":
+        marker = [name, bcdict['bc_temperature'], bcdict['bc_pressure']]
         marker.extend(bcdict['bc_velocity_normal'])
         marker_inlet.append( marker )
         marker_inc_inlet_type.append("PRESSURE_INLET")
-    elif bcdict['bc_subtype']=="Total Conditions":
-        marker = [bcdict['bcName'], bcdict['bc_temperature'], bcdict['bc_pressure']]
+    elif subtype=="Total Conditions":
+        marker = [name, bcdict['bc_temperature'], bcdict['bc_pressure']]
         marker.extend(bcdict['bc_velocity_normal'])
         marker_inlet.append( marker )
         marker_inlet_type.append("TOTAL_CONDITIONS")
-    elif bcdict['bc_subtype']=="Mass Flow":
-        marker = [bcdict['bcName'], bcdict['bc_density'], bcdict['bc_velocity_magnitude']]
+    elif subtype=="Mass Flow":
+        marker = [name, bcdict['bc_density'], bcdict['bc_velocity_magnitude']]
         marker.extend(bcdict['bc_velocity_normal'])
         marker_inlet.append( marker )
         marker_inlet_type.append("MASS_FLOW")
     # ##### SYMMETRY BOUNDARY CONDITIONS #####
-    elif bcdict['bc_subtype']=="Symmetry":
-        marker = [bcdict['bcName']]
-        marker_symmetry.append( marker )
+    elif subtype=="Symmetry":
+        marker_symmetry.append( [name] )
     # ##### FARFIELD BOUNDARY CONDITIONS #####
-    elif bcdict['bc_subtype']=="Far-field":
-        marker = [bcdict['bcName']]
-        marker_farfield.append( marker )
+    elif subtype=="Far-field":
+        marker_farfield.append( [name] )
     # ##### SUPERSONIC INLET BOUNDARY CONDITIONS #####
-    elif bcdict['bc_subtype']=="Supersonic Inlet":
-        marker = [bcdict['bcName'], bcdict['bc_temperature'], bcdict['bc_pressure']]
+    elif subtype=="Supersonic Inlet":
+        marker = [name, bcdict['bc_temperature'], bcdict['bc_pressure']]
         marker.extend(bcdict['bc_velocity_normal'])
         marker_supersonic_inlet.append( marker )
     # ##### SUPERSONIC OUTLET BOUNDARY CONDITIONS #####
-    elif bcdict['bc_subtype']=="Supersonic Outlet":
-        marker = [bcdict['bcName']]
-        marker_supersonic_outlet.append( marker )
+    elif subtype=="Supersonic Outlet":
+        marker_supersonic_outlet.append( [name] )
 
-  # ##### WALL #####
-  state.jsonData['MARKER_ISOTHERMAL']=marker_isothermal
-  state.jsonData['MARKER_HEATFLUX']=marker_heatflux
-  state.jsonData['MARKER_HEATTRANSFER']=marker_heattransfer
-  state.jsonData['MARKER_EULER']=marker_euler
-
-  # ##### WALL FUNCTIONS #####
-  if state.wall_function:
-    state.jsonData['MARKER_WALL_FUNCTIONS']=marker_wall_functions
-  else:
+  options = {
+    'MARKER_ISOTHERMAL': marker_isothermal,
+    'MARKER_HEATFLUX': marker_heatflux,
+    'MARKER_HEATTRANSFER': marker_heattransfer,
+    'MARKER_EULER': marker_euler,
     # do not keep wall functions of a previous setting
-    state.jsonData.pop('MARKER_WALL_FUNCTIONS', None)
+    'MARKER_WALL_FUNCTIONS': marker_wall_functions if wall_function else None,
+    'MARKER_OUTLET': marker_outlet,
+    'INC_OUTLET_TYPE': marker_inc_outlet_type,
+    'MARKER_SYM': marker_symmetry,
+    'MARKER_FAR': marker_farfield,
+    'MARKER_INLET': marker_inlet,
+    'INC_INLET_TYPE': marker_inc_inlet_type,
+    'MARKER_SUPERSONIC_INLET': marker_supersonic_inlet,
+    'MARKER_SUPERSONIC_OUTLET': marker_supersonic_outlet,
+  }
 
-  # ##### OUTLET #####
-  state.jsonData['MARKER_OUTLET']=marker_outlet
-  state.jsonData['INC_OUTLET_TYPE']=marker_inc_outlet_type
-
-  state.jsonData['MARKER_SYM']=marker_symmetry
-  state.jsonData['MARKER_FAR']=marker_farfield
-
-  state.jsonData['MARKER_INLET']=marker_inlet
-  state.jsonData['INC_INLET_TYPE']=marker_inc_inlet_type
   # INLET_TYPE (compressible) is a single enum in SU2 (addEnumOption): one type for all
   # inlet markers, unlike INC_INLET_TYPE which is a list with one entry per marker.
   if marker_inlet_type:
-    if len(set(marker_inlet_type)) > 1:
+    if warn and len(set(marker_inlet_type)) > 1:
       log("error", f"SU2 supports a single INLET_TYPE for all compressible inlets, found {sorted(set(marker_inlet_type))}. "
                    f"Using {marker_inlet_type[0]} for all inlets.")
-    state.jsonData['INLET_TYPE']=marker_inlet_type[0]
+    options['INLET_TYPE'] = marker_inlet_type[0]
   else:
-    state.jsonData.pop('INLET_TYPE', None)
+    options['INLET_TYPE'] = None
+  return options
 
-  # ##### SUPERSONIC #####
-  state.jsonData['MARKER_SUPERSONIC_INLET']=marker_supersonic_inlet
-  state.jsonData['MARKER_SUPERSONIC_OUTLET']=marker_supersonic_outlet
 
-  log("debug", f"marker_isothermal= = {state.jsonData['MARKER_ISOTHERMAL']}")
-  log("debug", f"marker_heatflux= = {state.jsonData['MARKER_HEATFLUX']}")
-  log("debug", f"marker_heattransfer= = {state.jsonData['MARKER_HEATTRANSFER']}")
-  log("debug", f"marker_outlet= = {state.jsonData['MARKER_OUTLET']}")
-  log("debug", f"marker_inc_outlet_type= = {state.jsonData['INC_OUTLET_TYPE']}")
-  log("debug", f"marker_symmetry= = {state.jsonData['MARKER_SYM']}")
-  log("debug", f"marker_far= = {state.jsonData['MARKER_FAR']}")
-  log("debug", f"marker_inlet= = {state.jsonData['MARKER_INLET']}")
-  log("debug", f"marker_inc_inlet_type= = {state.jsonData['INC_INLET_TYPE']}")
-  log("debug", f"marker_supersonic_inlet= = {state.jsonData['MARKER_SUPERSONIC_INLET']}")
-  log("debug", f"marker_supersonic_outlet= = {state.jsonData['MARKER_SUPERSONIC_OUTLET']}")
-
+def case_configuration(json_data, bc_list, wall_function, warn=True):
+  """The configuration written to the case: json_data with the boundary markers
+  of bc_list, without empty lists. Pure function: the state is not modified."""
+  cfg = dict(json_data or {})
+  for key, value in build_marker_options(bc_list, wall_function, warn=warn).items():
+    if value is None:
+      cfg.pop(key, None)
+    else:
+      cfg[key] = value
   # all empty markers will be removed for writing
-  myDict = {key:val for key, val in state.jsonData.items() if val != []}
-  log("debug", myDict)
-  state.jsonData = myDict
+  return {key: val for key, val in cfg.items() if val != []}
+
+
+def createjsonMarkers():
+  """Update state.jsonData with the markers of the boundary conditions."""
+  state.jsonData = case_configuration(state.jsonData, state.BCDictList, state.wall_function)
+
+
+def _flatten(value):
+  for item in value:
+    if isinstance(item, (list, tuple)):
+      yield from _flatten(item)
+    else:
+      yield item
+
+
+_VARIABLE_PATTERN = re.compile(r"\b([A-Za-z_]\w*)\b")
+
+
+def _substitute(text, variables):
+  """Replace the user variables (Variables tab) by their value in a cfg value."""
+  if not variables:
+    return text
+  return _VARIABLE_PATTERN.sub(lambda m: str(variables.get(m.group(1), m.group(1))), text)
+
+
+def current_variables():
+  """User variables defined in the Variables tab ({name: value})."""
+  try:
+    from core.variables import get_variables_dict
+    return get_variables_dict() or {}
+  except Exception:
+    return {}
+
+
+def _scalar_cfg(value, variables):
+  if value is True:
+    return "YES"
+  if value is False:
+    return "NO"
+  return _substitute(str(value), variables)
+
+
+def cfg_value(value, variables=None):
+  """SU2 .cfg representation of a json value (None: option not written)."""
+  if value is None or (isinstance(value, str) and value.lower() == 'none'):
+    return None
+  # lists (and lists of lists/tuples) are flattened between round brackets
+  if isinstance(value, (list, tuple)):
+    return "(" + ", ".join(_scalar_cfg(v, variables) for v in _flatten(value)) + ")"
+  return _scalar_cfg(value, variables)
+
+
+def build_cfg_text(config, description="", variables=None):
+  """Text of the SU2 .cfg file for the configuration dict ``config``."""
+  lines = [f"{description}  "] if description else []
+  for attribute, value in config.items():
+    text = cfg_value(value, variables)
+    if text is None:
+      continue
+    lines.append(f"{attribute}= {text}")
+  return "\n".join(lines) + "\n"
+
+
+def build_json_text(config):
+  return json.dumps(config, sort_keys=True, indent=4, ensure_ascii=False) + "\n"
+
+
+# last text written to each file, so that the periodic autosave does not re-read the files
+_last_written = {}
+
+
+def _write_if_changed(path, text):
+  """Write ``text`` to ``path`` atomically, only if the content is different.
+
+  Returns True if the file was written.
+  """
+  path = Path(path)
+  key = str(path.resolve())
+  if _last_written.get(key) == text and path.is_file():
+    return False
+  try:
+    if path.is_file() and path.read_text(encoding="utf-8") == text:
+      _last_written[key] = text
+      return False
+  except (OSError, UnicodeDecodeError):
+    pass
+  tmp = path.with_name(path.name + ".tmp")
+  with open(tmp, 'w', encoding="utf-8") as f:
+    f.write(text)
+  os.replace(tmp, path)
+  _last_written[key] = text
+  return True
+
+
+def write_case_configuration(filename_json_export, filename_cfg_export, update_state=True,
+                             variables=None):
+  """Write the .json and .cfg files of the active case if their content changed.
+
+  With update_state=False the state (state.jsonData) is not modified, which is
+  what the periodic autosave uses. The user variables are substituted in the
+  .cfg (SU2 cannot read them); the .json keeps them. Returns the written files.
+  """
+  if not state.case_name:
+    return []
+  if variables is None:
+    variables = current_variables()
+  config = case_configuration(state.jsonData, state.BCDictList, state.wall_function,
+                              warn=update_state)
+  if update_state:
+    state.jsonData = config
+
+  directory = case_dir(state.case_name)
+  directory.mkdir(parents=True, exist_ok=True)
+  written = []
+  if _write_if_changed(directory / filename_json_export, build_json_text(config)):
+    written.append(directory / filename_json_export)
+  if _write_if_changed(directory / filename_cfg_export,
+                       build_cfg_text(config, state.config_desc or "", variables)):
+    written.append(directory / filename_cfg_export)
+  return written
+
 
 ########################################################################################
 # Export the new json configuration file as .json and as .cfg #
-# TODO: why do all the states get checked at startup?
-# TODO: when we click the save button, the icon color changes
 ########################################################################################
 def save_json_cfg_file(filename_json_export,filename_cfg_export):
     if state.case_name == None or state.case_name == "":
         log("info", "Case name is not defined, did not export the configuration file")
         return
-    log("info", "exporting files")
-    log("info", f"write config file  = {filename_json_export}"),
-    log("info", f"write config file  = {filename_cfg_export}"),
-    state.counter = state.counter + 1
-    log("info", f"counter= = {state.counter}")
-    if (state.counter==2):
-      log("info", f"counter= = {state.counter}")
-
-    # construct the boundaries using BCDictList
-    createjsonMarkers()
-    #
-    ########################################################################################
-    # ##### save the json file
-    ########################################################################################
-    with open(BASE / "user" / state.case_name / filename_json_export,'w') as jsonOutputFile:
-        json.dump(state.jsonData,jsonOutputFile,sort_keys=True,indent=4,ensure_ascii=False)
-    ########################################################################################
-
-    ########################################################################################
-    # ##### convert json file to cfg file and save
-    ########################################################################################
-    with open(BASE / "user" / state.case_name / filename_cfg_export,'w') as f:
-      f.write(f"{state.config_desc}  \n")
-      #for k in state.jsonData:
-      for attribute, value in state.jsonData.items():
-        # print(attribute, value)
-        # convert boolean
-        if isinstance(value, bool):
-            if value==True:
-                value="YES"
-            else:
-                value="NO"
-        # we can have lists or lists of lists
-        # we can simply flatten the list, remove the quotations,
-        # convert square brackets to round brackets and done.
-        elif isinstance(value, list):
-
-          flat_list = []
-          for sublist in value:
-            #print(sublist)
-            if isinstance(sublist,list):
-              #log("info", f"sublist= = {sublist}")
-              for num in sublist:
-                flat_list.append(num)
-                #log("info", f"flatlist= = {flat_list}")
-            else:
-              flat_list.append(sublist)
-
-
-          flatlist = ', '.join(str(e) for e in flat_list)
-          # put the list between brackets
-          value = "(" + flatlist + ")"
-
-        # pass if value is none
-        if value == None or (isinstance(value, str) and value.lower()=='none'):
-           continue
-
-        filestring=str(attribute) + "= " + str(value) + "\n"
-        f.write(filestring)
-
-
+    written = write_case_configuration(filename_json_export, filename_cfg_export)
+    for path in written:
+        log("info", f"Saved {path}")
 
 ########################################################################################
 # ##### export internal vtk multiblock mesh to an su2 file
@@ -346,7 +402,7 @@ def save_su2mesh(multiblock,su2_export_filename):
         for i in range(ncells):
             out.append(f"{marker.GetCellType(i)} {_cell_connectivity(marker, i, ids)}")
 
-    with open(BASE / "user" / state.case_name / su2_export_filename, 'w') as f:
+    with open(case_dir(state.case_name) / su2_export_filename, 'w') as f:
         f.write("\n".join(out))
         f.write("\n")
 

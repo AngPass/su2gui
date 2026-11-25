@@ -16,6 +16,7 @@ from pathlib import Path
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+from core.paths import case_dir, cases_root
 
 # definition of ui_card
 from core.su2_py_wrapper import generate_dynamic_temperature_wrapper
@@ -522,10 +523,8 @@ def update_boundaries_dialog_card_wall():
 # Controller function for the button
 def generate_python_wrapper_with_dynamic_temp():
     """Generate Python wrapper with dynamic wall temperature for the selected boundary."""
-    print("here")
     log("info", "=== BUTTON CLICKED: Dynamic Temperature Wrapper Generation Started ===")
     try:
-        print("Generating dynamic temperature wrapper...")
         # Check if case_name exists, if not create a default one
         if not hasattr(state, 'case_name') or not state.case_name:
             state.case_name = "default_case"
@@ -535,7 +534,6 @@ def generate_python_wrapper_with_dynamic_temp():
             log("warning", "No boundary selected. Using default boundary name 'airfoil'")
             state.selectedBoundaryName = "airfoil"
 
-        print(f"Selected boundary: {state.selectedBoundaryName}")
         # Get current temperature value and custom settings
         base_temp = getattr(state, 'boundaries_inc_temperature_idx', 300.0)
         boundary_name = state.selectedBoundaryName
@@ -563,7 +561,19 @@ def generate_python_wrapper_with_dynamic_temp():
         if not hasattr(state, 'jsonData'):
             state.jsonData = {}
 
-        state.jsonData['MARKER_ISOTHERMAL'] = [(boundary_name, base_temp)]
+        # MARKER_ISOTHERMAL is generated from the boundary conditions at every save, so
+        # make the boundary an isothermal wall there (the python wrapper then sets the
+        # temperature of each vertex); writing jsonData['MARKER_ISOTHERMAL'] would be lost.
+        for bc in (state.BCDictList or []):
+            if bc.get('bcName') == boundary_name:
+                bc['bcType'] = 'Wall'
+                bc['bc_subtype'] = 'Temperature'
+                bc['json'] = 'MARKER_ISOTHERMAL'
+                bc['bc_temperature'] = base_temp
+                state.dirty('BCDictList')
+                break
+        else:
+            log("warn", f"Boundary '{boundary_name}' not found in the boundary conditions")
 
         # Set Python custom marker for dynamic control
         if 'MARKER_PYTHON_CUSTOM' not in state.jsonData:
@@ -600,7 +610,7 @@ def generate_python_wrapper_with_dynamic_temp():
         try:
             import json
             from pathlib import Path
-            export_dir = Path(__file__).parent.parent / "user" / state.case_name
+            export_dir = case_dir(state.case_name)
             export_dir.mkdir(parents=True, exist_ok=True)
             json_path = export_dir / "config.json"
             with json_path.open("w", encoding="utf-8") as fp:

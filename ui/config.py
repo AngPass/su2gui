@@ -7,6 +7,7 @@ from datetime import date
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
+from core.paths import case_dir, cases_root
 
 from trame.widgets import vuetify, markdown
 
@@ -212,7 +213,7 @@ def validate_current_config():
         from core.json_validation import validate_config_standalone
         
         # Use the standalone validator
-        case_config_path = str(Path(__file__).parent.parent / "user" / state.case_name / "config_new.json")
+        case_config_path = str(case_dir(state.case_name) / "config_new.json")
         schema_path = str(Path(__file__).parent.parent / "user" / "start" / "JsonSchema.json")
         
         # Perform validation
