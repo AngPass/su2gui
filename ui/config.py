@@ -33,6 +33,10 @@ from core.logger import log
 state, ctrl = server.state, server.controller
 
 state.config_str = ""
+
+# names of all the SU2 options, for the autocomplete of the "Add property" field
+from core import su2_options as _su2_options
+state.su2_option_names = sorted(_su2_options.option_names())
 state.config_desc = f"""%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                              %
 % SU2 configuration file                                                       %
@@ -67,6 +71,9 @@ def add_new_property():
             value = [v.strip() for v in value]
             value = [int(v) if isinstance(v, str) and v.isdigit() else v for v in value]
     state.new_config_key = state.new_config_key.upper().strip()
+    # SU2 stops on unknown option names and invalid values: tell the user now
+    for _key, message in _su2_options.check({state.new_config_key: value}):
+        log("warn", f"{message} ({_su2_options.source()})")
     state.jsonData[state.new_config_key] = value
     state.dirty('jsonData')
     update_config_str()
@@ -148,12 +155,15 @@ def config_tab():
         ):
             with vuetify.VCol(
                     style = "width:30%"):
-                vuetify.VTextField(
-                    label="Key",
+                # any SU2 option (autocomplete on the options of core/su2_options.json)
+                vuetify.VCombobox(
+                    label="Key (SU2 option)",
                     v_model = ("key", None),
+                    items=("su2_option_names", []),
                     outlined=True,
                     dense=True,
                     hide_details=True,
+                    clearable=True,
                 )
             with vuetify.VCol(
                     style = "width:70%"):
@@ -207,25 +217,21 @@ def config_tab():
 
 @ctrl.trigger("validate_current_config")
 def validate_current_config():
-    """Validate current configuration against JSON schema"""
+    """Check the configuration that is written to the case against the SU2 options
+    (names, enum values, deprecated names) of the catalog core/su2_options.json."""
     try:
-        # Import validator locally to avoid circular imports
-        from core.json_validation import validate_config_standalone
-        
-        # Use the standalone validator
-        case_config_path = str(case_dir(state.case_name) / "config_new.json")
-        schema_path = str(Path(__file__).parent.parent / "user" / "start" / "JsonSchema.json")
-        
-        # Perform validation
-        is_valid = validate_config_standalone(schema_path, case_config_path)
-        
-        if is_valid:
-            log("info", " Configuration validation successful")
-        else:
-            log("error", " Configuration validation failed - check log for details")
-        
-        return is_valid
-        
+        from core import su2_options
+        from core.su2_io import case_configuration
+
+        config = case_configuration(state.jsonData, state.BCDictList, state.wall_function)
+        issues = su2_options.check(config)
+        if not issues:
+            log("info", f"Configuration valid: {len(config)} options checked against {su2_options.source()}")
+            return True
+        lines = "  \n".join(f"- {message}" for _key, message in issues)
+        log("error", f"Configuration has {len(issues)} problem(s) for {su2_options.source()}:  \n{lines}")
+        return False
+
     except Exception as e:
         log("error", f"Configuration validation error: {e}")
         return False

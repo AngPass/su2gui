@@ -50,6 +50,7 @@ state.server_browser_error = ""
 state.server_browser_info = ""
 state.server_browser_show_all = False
 state.server_browser_places = []
+state.server_browser_pick_dir = False
 
 
 def _update_places(extra=()):
@@ -99,6 +100,19 @@ def register_server_file_target(name, title, extensions, handler):
         "extensions": tuple(e.lower() for e in extensions),
         "handler": handler,
         "last_dir": None,
+        "dirs_only": False,
+    }
+
+
+def register_server_dir_target(name, title, handler):
+    """Register a target that selects a directory: ``handler(Path)`` is called with the
+    directory shown in the path field (it may not exist yet, the handler creates it)."""
+    _targets[name] = {
+        "title": title,
+        "extensions": (),
+        "handler": handler,
+        "last_dir": None,
+        "dirs_only": True,
     }
 
 
@@ -118,6 +132,11 @@ def _allowed(path):
         except ValueError:
             continue
     return False
+
+
+def is_allowed_path(path):
+    """True if ``path`` is inside the folders allowed by --browse-root (or no restriction)."""
+    return _allowed(Path(path).expanduser().resolve())
 
 
 def _outside_message(path):
@@ -144,6 +163,8 @@ def _list_dir(directory, target):
                 if entry.is_dir():
                     dirs.append({"name": entry.name, "path": entry.path, "is_dir": True, "size": ""})
                 elif entry.is_file():
+                    if target.get("dirs_only") and not show_all:
+                        continue
                     if not show_all and extensions and not entry.name.lower().endswith(extensions):
                         continue
                     files.append({"name": entry.name, "path": entry.path, "is_dir": False,
@@ -182,7 +203,7 @@ def _show_dir(directory):
     target["last_dir"] = directory
 
 
-def open_server_browser(target_name):
+def open_server_browser(target_name, start_dir=None):
     target = _targets.get(target_name)
     if target is None:
         log("error", f"Unknown server file target: {target_name}")
@@ -190,7 +211,9 @@ def open_server_browser(target_name):
     state.server_browser_target = target_name
     state.server_browser_title = target["title"]
     state.server_browser_show_all = False
-    start = target["last_dir"] or (Path(state.server_browser_dir) if state.server_browser_dir else _start_dir())
+    state.server_browser_pick_dir = bool(target.get("dirs_only"))
+    start = (Path(start_dir) if start_dir and Path(start_dir).expanduser().is_dir() else None) \
+        or target["last_dir"] or (Path(state.server_browser_dir) if state.server_browser_dir else _start_dir())
     _show_dir(start)
     if state.server_browser_error:
         _show_dir(_start_dir())
@@ -220,6 +243,30 @@ def server_browser_home():
 
 def server_browser_close():
     state.server_browser_visible = False
+
+
+def server_browser_use_dir(path=None):
+    """Directory targets: use the folder typed in the path field (or the current one)."""
+    target = _targets.get(state.server_browser_target)
+    if target is None or not target.get("dirs_only"):
+        return
+    p = Path(str(path or state.server_browser_dir or _start_dir()).strip()).expanduser()
+    if not p.is_absolute():
+        p = Path(state.server_browser_dir or _start_dir()) / p
+    p = p.resolve()
+    if p.exists() and not p.is_dir():
+        state.server_browser_error = f"{p} is a file, not a folder"
+        return
+    if not _allowed(p):
+        state.server_browser_error = _outside_message(p)
+        return
+    target["last_dir"] = p if p.is_dir() else p.parent
+    state.server_browser_visible = False
+    try:
+        target["handler"](p)
+    except Exception as e:
+        import traceback
+        log("error", f"Could not use the folder {p}: {e}", detail=traceback.format_exc())
 
 
 def server_browser_open_entry(path, is_dir):
@@ -337,9 +384,12 @@ def server_browser_dialog():
                             vuetify.VListItemTitle("{{ entry.name }}")
                         vuetify.VListItemActionText("{{ entry.size }}")
                     with vuetify.VListItem(v_if="server_browser_entries.length === 0"):
-                        vuetify.VListItemTitle("No matching files in this directory",
+                        vuetify.VListItemTitle("{{ server_browser_pick_dir ? 'No subfolders' : 'No matching files in this directory' }}",
                                                classes="grey--text")
 
             with vuetify.VCardActions():
                 vuetify.VSpacer()
+                # folder selection: the folder in the path field (it can be a new one)
+                vuetify.VBtn("Use this folder", v_if="server_browser_pick_dir", color="primary",
+                             click=(server_browser_use_dir, "[server_browser_path]"))
                 vuetify.VBtn("Close", click=server_browser_close)

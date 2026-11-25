@@ -923,8 +923,8 @@ def update_boundaries_main(boundaries_main_idx, **kwargs):
       entry = get_entry_from_name(bc_subtype,'text',state.LBoundariesInlet)
       # set the state - this also calls the state function
       state.boundaries_inc_inlet_idx = entry['value']
-      if 'INC_INLET_USENORMAL' in state.jsonData:
-        state.boundary_inc_vel_usenormals_idx=state.jsonData['INC_INLET_USENORMAL']
+      if 'INLET_USE_NORMAL' in state.jsonData:
+        state.boundary_inc_vel_usenormals_idx=state.jsonData['INLET_USE_NORMAL']
       log("info", f"usenormals:  = {state.boundary_inc_vel_usenormals_idx}")
       # force update of state, so we call the state.change
       state.dirty('boundaries_inc_inlet_idx')
@@ -1164,9 +1164,9 @@ def update_material(boundaries_inc_inlet_idx, **kwargs):
 @state.change("boundary_inc_vel_usenormals_idx")
 def update_material(boundary_inc_vel_usenormals_idx, **kwargs):
     #log("info", f"inlet boundary velocity use normal:  = {boundary_inc_vel_usenormals_idx}")
-    #log("info", f"inlet boundary velocity use normal:  = {state.jsonData['INC_INLET_USENORMAL']}")
-    state.jsonData['INC_INLET_USENORMAL'] = bool(boundary_inc_vel_usenormals_idx)
-    #log("info", f"inlet boundary velocity use normal:  = {state.jsonData['INC_INLET_USENORMAL']}")
+    #log("info", f"inlet boundary velocity use normal:  = {state.jsonData['INLET_USE_NORMAL']}")
+    state.jsonData['INLET_USE_NORMAL'] = bool(boundary_inc_vel_usenormals_idx)
+    #log("info", f"inlet boundary velocity use normal:  = {state.jsonData['INLET_USE_NORMAL']}")
 
     #state.BCDictList[state.selectedBoundaryIndex]['bcType'] = "Inlet"
     #state.BCDictList[state.selectedBoundaryIndex]['bc_subtype'] = "Velocity inlet"

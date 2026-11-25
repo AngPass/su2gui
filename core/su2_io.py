@@ -44,6 +44,9 @@ except ImportError:
 
 BASE = Path(__file__).parent.parent
 
+# catalog of the SU2 options (names, enum values, deprecated names)
+from core import su2_options
+
 # remove empty lists from dictlist object
 def remove_empty_lists(d):
   final_dict = {}
@@ -188,15 +191,34 @@ def build_marker_options(bc_list, wall_function, warn=True):
 
 def case_configuration(json_data, bc_list, wall_function, warn=True):
   """The configuration written to the case: json_data with the boundary markers
-  of bc_list, without empty lists. Pure function: the state is not modified."""
+  of bc_list, deprecated SU2 options renamed, without empty lists.
+  Pure function: the state is not modified."""
   cfg = dict(json_data or {})
   for key, value in build_marker_options(bc_list, wall_function, warn=warn).items():
     if value is None:
       cfg.pop(key, None)
     else:
       cfg[key] = value
+  # options renamed/removed in SU2 (SU2 stops on deprecated names)
+  cfg, messages = su2_options.migrate(cfg)
+  report_option_issues([(None, m) for m in messages], level="warn")
   # all empty markers will be removed for writing
   return {key: val for key, val in cfg.items() if val != []}
+
+
+# messages already shown in this session (the autosave checks every few seconds)
+_reported_issues = set()
+
+
+def report_option_issues(issues, prefix="", level="error"):
+  """Log the problems found by su2_options.check()/migrate() once per session."""
+  for _key, message in issues:
+    text = f"{prefix}{message}"
+    if text in _reported_issues:
+      continue
+    _reported_issues.add(text)
+    log(level, f"{text}  \n(checked against the options of {su2_options.source()}; "
+               "SU2 stops on unknown options and invalid values)" if level == "error" else text)
 
 
 def createjsonMarkers():
@@ -307,6 +329,8 @@ def write_case_configuration(filename_json_export, filename_cfg_export, update_s
                               warn=update_state)
   if update_state:
     state.jsonData = config
+  # names/values that SU2 would reject (reported, the file is written anyway)
+  report_option_issues(su2_options.check(config), prefix=f"{filename_cfg_export}: ")
 
   directory = case_dir(state.case_name)
   directory.mkdir(parents=True, exist_ok=True)

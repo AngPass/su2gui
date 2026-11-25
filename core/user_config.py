@@ -52,7 +52,17 @@ def get_su2_path():
     return config.get('su2_cfd_path')
 
 def set_su2_path(path):
-    
+
     config = read_config()
     config['su2_cfd_path'] = path
+    write_config(config)
+
+def get_cases_dir():
+    """Folder chosen for the cases the last time (None if never chosen)."""
+    return read_config().get('cases_dir')
+
+def set_cases_dir(path):
+    """Remember the folder of the cases for the next start."""
+    config = read_config()
+    config['cases_dir'] = str(path)
     write_config(config)

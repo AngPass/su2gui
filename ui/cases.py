@@ -8,7 +8,9 @@ from pathlib import Path
 parent_dir = str(Path(__file__).parent.parent.absolute())
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
-from core.paths import case_dir, cases_root, is_case_dir, is_valid_case_name, list_cases, mark_case_dir
+from core.paths import (case_dir, cases_root, is_case_dir, is_valid_case_name, list_cases,
+                        mark_case_dir, set_cases_root, set_active_case)
+from ui.server_files import register_server_dir_target, open_server_browser, is_allowed_path
 
 from trame.widgets import markdown, html
 from trame.widgets import vuetify
@@ -51,6 +53,50 @@ state.cases_root_path = str(cases_root())
 def update_case_path(case_name, **kwargs):
     state.case_path = str(case_dir(case_name)) if case_name else ""
     state.cases_root_path = str(cases_root())
+
+
+# folder where a new case is created (asked in the "Start a new case" dialog)
+state.new_case_location = str(cases_root())
+state.new_case_preview = ""
+
+
+def _new_case_dir(name, location):
+    """Directory of a new case named ``name`` in ``location`` (None if invalid)."""
+    name = (name or "").strip().replace(" ", "_")
+    location = (location or "").strip() or str(cases_root())
+    if not is_valid_case_name(name):
+        return None
+    return Path(location).expanduser().resolve() / name
+
+
+@state.change("new_case_name", "new_case_location")
+def update_new_case_preview(new_case_name, new_case_location, **kwargs):
+    target = _new_case_dir(new_case_name, new_case_location)
+    state.new_case_preview = str(target) if target else "(enter a valid case name)"
+
+
+def _set_new_case_location(path):
+    state.new_case_location = str(path)
+
+
+def change_cases_folder(path):
+    """Show/manage the cases of another folder (the active case stays where it is)."""
+    if not is_allowed_path(Path(path)):
+        log("error", f"{path} is outside of the folders allowed by --browse-root")
+        return
+    try:
+        root = set_cases_root(path, remember=True)
+    except OSError as e:
+        log("error", f"Cannot use {path} as cases folder: {e}")
+        return
+    state.cases_root_path = str(root)
+    state.new_case_location = str(root)
+    set_cases_list()
+    log("info", f"Cases folder: {root}")
+
+
+register_server_dir_target("case_location", "Folder for the new case", _set_new_case_location)
+register_server_dir_target("cases_folder", "Cases folder", change_cases_folder)
 
 
 ############# DIALOG CARDS ##############
@@ -96,6 +142,12 @@ def manage_case_dialog_card():
                     with vuetify.VCol():
                         html.Div("{{ cases_root_path }}",
                                  style="font-family: monospace; word-break: break-all; color:black;")
+                    with vuetify.VCol(cols="auto"):
+                        # show the cases of another folder
+                        with vuetify.VBtn("Change", small=True,
+                                          click=(open_server_browser, "['cases_folder', cases_root_path]"),
+                                          disabled=("solver_running", False)):
+                            vuetify.VIcon("mdi-folder-search-outline", right=True, small=True)
 
                 with vuetify.VRow():
                     with vuetify.VCol():
@@ -168,6 +220,25 @@ def case_name_dialog_card():
                             dense=True,
                             hide_details=True,
                         )
+                        # where the case is created (folder on the server, created if needed)
+                        with vuetify.VRow(dense=True, classes="mt-3 align-center"):
+                            with vuetify.VCol(cols="10", classes="pa-0"):
+                                vuetify.VTextField(
+                                    label="Folder (on the server)",
+                                    v_model=("new_case_location", state.new_case_location),
+                                    outlined=True,
+                                    dense=True,
+                                    hide_details=True,
+                                )
+                            with vuetify.VCol(cols="2", classes="pa-0 text-right"):
+                                with vuetify.VBtn(icon=True, small=True,
+                                                  click=(open_server_browser, "['case_location', new_case_location]"),
+                                                  title="Choose the folder on the server",
+                                                  __properties=["title"]):
+                                    vuetify.VIcon("mdi-folder-search-outline")
+                        html.Div("The case will be created in: {{ new_case_preview }}",
+                                 classes="text-caption mt-2",
+                                 style="font-family: monospace; word-break: break-all; color: grey;")
                     vuetify.VCheckbox(
                                     v_model=("delete_all_previous_cases", False),
                                     label = "Delete all previous cases",
@@ -193,6 +264,7 @@ def case_name_dialog_card():
 # function to open the new case dialog
 def open_new_case_dialog():
     set_cases_list()
+    state.new_case_location = str(cases_root())
     state.delete_all_previous_cases = False
     state.show_manage_case_dialog_card = False
     state.case_name_help = ''
@@ -293,14 +365,34 @@ def download_case():
 # function to create a new case
 @ctrl.trigger("create_new_case")
 def create_new_case():
+    new_name = (state.new_case_name or "").strip().replace(" ", "_")
+
+    # the folder chosen in the dialog becomes the cases folder (remembered for the next start)
+    location = (state.new_case_location or "").strip() or str(cases_root())
+    location_path = Path(location).expanduser()
+    if not location_path.is_absolute():
+        state.case_name_help = "> Please enter an absolute folder path (e.g. /scratch/user/su2gui_cases)."
+        return
+    if not is_allowed_path(location_path):
+        state.case_name_help = f"> '{location}' is outside of the folders allowed by --browse-root."
+        return
+    if location_path.exists() and not location_path.is_dir():
+        state.case_name_help = f"> '{location}' is a file, not a folder."
+        return
+    try:
+        root = set_cases_root(location_path, remember=True)
+    except OSError as e:
+        state.case_name_help = f"> Cannot create the folder '{location}':  \n{e}"
+        return
+    state.cases_root_path = str(root)
+    state.new_case_location = str(root)
+
     set_cases_list()
 
     if state.delete_all_previous_cases == True:
         set_cases_list()
         for case in state.case_list:
             delete_case(case)
-
-    new_name = (state.new_case_name or "").strip().replace(" ", "_")
 
     if new_name == "":
         state.case_name_help = "> Please enter a valid case name."
@@ -311,14 +403,16 @@ def create_new_case():
     elif new_name in state.case_list:
         state.case_name_help = "> Case name already exists.  \nPlease enter a different name."
 
-    elif case_dir(new_name).exists():
+    elif (root / new_name).exists():
         # a file or folder that is not an SU2GUI case: do not write into it
-        state.case_name_help = f"> '{case_dir(new_name)}' already exists and is not an SU2GUI case.  \nPlease enter a different name."
+        state.case_name_help = f"> '{root / new_name}' already exists and is not an SU2GUI case.  \nPlease enter a different name."
 
     else:
 
         state.show_case_name_dialog = False
         reset_values()
+        # the case stays in this folder also if the cases folder is changed later
+        set_active_case(new_name, root / new_name)
         state.case_name = new_name
         try:
             mark_case_dir(case_dir(state.case_name))
@@ -357,6 +451,8 @@ def load_case(case_name):
     if case_name is None or case_name == '':
         log("Error", "No case selected.")
         return
+    # the cases of the list are in the current cases folder
+    set_active_case(case_name, cases_root() / case_name)
     state.case_name = case_name
     state.show_manage_case_dialog_card = False
     state.show_case_name_dialog = False

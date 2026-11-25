@@ -175,6 +175,31 @@ class TestServerFileBrowser(unittest.TestCase):
         self.sf.server_browser_go(str(self.dir))
         self.assertIn("outside", self.state.server_browser_error)
 
+    def test_directory_target(self):
+        chosen = []
+        self.sf.register_server_dir_target("folder", "Choose folder", chosen.append)
+        self.sf.open_server_browser("folder", str(self.dir))
+        self.assertTrue(self.state.server_browser_pick_dir)
+        self.assertEqual(self.names(), ["cases"])            # folders only
+        # a new folder typed in the path field can be chosen (created by the handler)
+        self.sf.server_browser_use_dir(str(self.dir / "new_cases"))
+        self.assertEqual(chosen, [self.dir / "new_cases"])
+        self.assertFalse(self.state.server_browser_visible)
+        # a relative name is relative to the folder shown
+        self.sf.open_server_browser("folder", str(self.dir))
+        self.sf.server_browser_use_dir("rel")
+        self.assertEqual(chosen[-1], self.dir / "rel")
+        # a file cannot be chosen
+        self.sf.open_server_browser("folder", str(self.dir))
+        self.sf.server_browser_use_dir(str(self.dir / "notes.txt"))
+        self.assertIn("is a file", self.state.server_browser_error)
+        # outside of --browse-root
+        self.sf.set_server_browser_root(self.dir / "cases")
+        self.sf.open_server_browser("folder")
+        self.sf.server_browser_use_dir(str(self.dir / "elsewhere"))
+        self.assertIn("outside", self.state.server_browser_error)
+        self.assertEqual(len(chosen), 2)
+
     def test_places_without_restriction(self):
         self.sf.add_server_browser_places([self.dir / "cases"])
         paths = [p["path"] for p in self.state.server_browser_places]

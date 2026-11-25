@@ -121,7 +121,8 @@ from ui.fileio import *
 from ui.variables import *
 # where the cases are stored (--cases-dir / SU2GUI_CASES_DIR) and the cfg writer
 from core.paths import case_dir, cases_root, set_cases_root
-from core.su2_io import write_case_configuration, _write_if_changed
+from core.su2_io import write_case_configuration, _write_if_changed, report_option_issues
+from core import su2_options
 from trame.app import asynchronous
 from datetime import datetime as _datetime
 # server-side file browser (files of the machine running SU2GUI)
@@ -1208,6 +1209,8 @@ def load_cfg_file(cfg_file_upload, **kwargs):
 
     cfg_dict = {}
     for item in cfglist:
+        # SU2 ignores everything after a '%' (inline comments)
+        item = item.split('%', 1)[0].strip()
         if '=' not in item:
             continue
         key, value = item.split('=', 1)
@@ -1255,6 +1258,13 @@ def load_cfg_file(cfg_file_upload, **kwargs):
 
     cfg_dict.pop('SOLUTION_FILENAME', None)
     cfg_dict.pop('RESTART_SOL', None)
+
+    # options renamed/removed in SU2 develop (e.g. INC_INLET_USENORMAL -> INLET_USE_NORMAL)
+    cfg_dict, messages = su2_options.migrate(cfg_dict)
+    for message in messages:
+        log("warn", f"{file.name}: {message}")
+    # names/values that SU2 would reject
+    report_option_issues(su2_options.check(cfg_dict), f"{file.name}: ")
     state.jsonData = cfg_dict
     state.dirty('jsonData')
 
@@ -2320,6 +2330,7 @@ def main():
             print(f"Cannot use --cases-dir {args.cases_dir}: {e}")
             exit(1)
     state.cases_root_path = str(cases_root())
+    state.new_case_location = str(cases_root())
     print(f"Cases are stored in: {cases_root()}")
     log("info", f"Cases are stored in: {cases_root()}")
 

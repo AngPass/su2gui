@@ -28,7 +28,14 @@ class TestCasePaths(unittest.TestCase):
         paths._cases_root = self._saved
         self.tmp.cleanup()
 
+    def _no_remembered_dir(self, value=None):
+        from core import user_config
+        saved = user_config.get_cases_dir
+        user_config.get_cases_dir = lambda: value
+        self.addCleanup(setattr, user_config, "get_cases_dir", saved)
+
     def test_default_is_installation_user_dir(self):
+        self._no_remembered_dir()
         paths._cases_root = None
         old = os.environ.pop(paths.ENV_VAR, None)
         try:
@@ -36,6 +43,28 @@ class TestCasePaths(unittest.TestCase):
         finally:
             if old is not None:
                 os.environ[paths.ENV_VAR] = old
+
+    def test_remembered_dir_is_used_at_start(self):
+        self.root.mkdir(parents=True)
+        self._no_remembered_dir(str(self.root))
+        paths._cases_root = None
+        old = os.environ.pop(paths.ENV_VAR, None)
+        try:
+            self.assertEqual(paths.cases_root(), self.root)
+        finally:
+            if old is not None:
+                os.environ[paths.ENV_VAR] = old
+
+    def test_active_case_stays_in_its_folder(self):
+        first = self.root / "first"
+        paths.set_cases_root(first)
+        paths.mark_case_dir(first / "naca")
+        paths.set_active_case("naca", first / "naca")
+        self.addCleanup(paths.set_active_case, None)
+        # the user shows the cases of another folder: the open case does not move
+        paths.set_cases_root(self.root / "second")
+        self.assertEqual(paths.case_dir("naca"), first / "naca")
+        self.assertEqual(paths.case_dir("other"), self.root / "second" / "other")
 
     def test_env_var_and_cli(self):
         paths._cases_root = None
@@ -86,6 +115,13 @@ class TestCfgWriter(unittest.TestCase):
     def tearDown(self):
         paths._cases_root = self._saved_root
         self.tmp.cleanup()
+
+    def test_deprecated_option_is_renamed_in_cfg(self):
+        self.state.jsonData["INC_INLET_USENORMAL"] = True
+        su2_io.write_case_configuration("c.json", "c.cfg", update_state=False, variables={})
+        text = (paths.case_dir("naca") / "c.cfg").read_text()
+        self.assertIn("INLET_USE_NORMAL= YES", text)
+        self.assertNotIn("INC_INLET_USENORMAL", text)
 
     def test_case_configuration_is_pure(self):
         before = dict(self.state.jsonData)

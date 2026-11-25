@@ -4,9 +4,10 @@ Every case is a directory ``<cases root>/<case name>`` that holds the mesh, the
 .cfg/.json configuration, the SU2 output (history, restart, volume files) and
 the logs. The cases root is, in order of precedence:
 
-1. the ``--cases-dir`` command line option (set_cases_root),
+1. the folder chosen in the GUI or with the ``--cases-dir`` option (set_cases_root),
 2. the ``SU2GUI_CASES_DIR`` environment variable,
-3. ``<SU2GUI installation>/user`` (historical default).
+3. the folder chosen the last time (remembered in the user configuration file),
+4. ``<SU2GUI installation>/user`` (historical default).
 
 Application files that are not part of a case (the default config template
 ``user/config.json``, the JSON schema in ``user/start``, the global
@@ -33,15 +34,31 @@ def _default_root():
     env = os.environ.get(ENV_VAR)
     if env:
         return Path(env).expanduser().resolve()
+    try:
+        from core.user_config import get_cases_dir
+        last = get_cases_dir()
+        if last and Path(last).is_dir():
+            return Path(last).resolve()
+    except Exception:
+        pass
     return APP_USER_DIR
 
 
-def set_cases_root(path):
-    """Use ``path`` as the directory containing the cases (created if needed)."""
+def set_cases_root(path, remember=False):
+    """Use ``path`` as the directory containing the cases (created if needed).
+
+    With remember=True the folder is also used at the next start.
+    """
     global _cases_root
     root = Path(path).expanduser().resolve()
     root.mkdir(parents=True, exist_ok=True)
     _cases_root = root
+    if remember:
+        try:
+            from core.user_config import set_cases_dir
+            set_cases_dir(root)
+        except Exception:
+            pass
     return root
 
 
@@ -50,12 +67,29 @@ def cases_root():
     return _cases_root if _cases_root is not None else _default_root()
 
 
+# (name, directory) of the active case: it stays where it was created/loaded also
+# when the cases folder is changed afterwards
+_active_case = None
+
+
+def set_active_case(case_name, directory=None):
+    """Record the directory of the active case (default: <cases root>/<name>)."""
+    global _active_case
+    if not case_name:
+        _active_case = None
+        return None
+    directory = Path(directory).expanduser().resolve() if directory else cases_root() / str(case_name)
+    _active_case = (str(case_name), directory)
+    return directory
+
+
 def case_dir(case_name):
     """Directory of the case ``case_name`` (the cases root if the name is empty)."""
-    root = cases_root()
     if not case_name:
-        return root
-    return root / str(case_name)
+        return cases_root()
+    if _active_case is not None and _active_case[0] == str(case_name):
+        return _active_case[1]
+    return cases_root() / str(case_name)
 
 
 # File created in every case directory. With a custom cases root (which may be

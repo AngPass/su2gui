@@ -1,0 +1,4810 @@
+{
+ "source": {
+  "branch": "develop",
+  "commit": "08148ac57d178bf82bbfd87d59385dcf9cc0b6dc 2026-11-25"
+ },
+ "options": {
+  "ABSORPTION_COEFF": {
+   "kind": "Double"
+  },
+  "ACENTRIC_FACTOR": {
+   "kind": "Double"
+  },
+  "ACTDISK_DOUBLE_SURFACE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ACTDISK_FILENAME": {
+   "kind": "String"
+  },
+  "ACTDISK_JUMP": {
+   "kind": "Enum",
+   "values": [
+    "DIFFERENCE",
+    "RATIO"
+   ]
+  },
+  "ACTDISK_SECONDARY_FLOW": {
+   "kind": "Double"
+  },
+  "ACTDISK_SU2_DEF": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ACTDISK_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "VARIABLES_JUMP",
+    "BC_THRUST",
+    "NET_THRUST",
+    "DRAG_MINUS_THRUST",
+    "MASSFLOW",
+    "POWER",
+    "VARIABLE_LOAD",
+    "BLADE_ELEMENT"
+   ]
+  },
+  "ADER_PREDICTOR": {
+   "kind": "Enum",
+   "values": [
+    "ADER_ALIASED_PREDICTOR",
+    "ADER_NON_ALIASED_PREDICTOR"
+   ]
+  },
+  "ADJ_JST_SENSOR_COEFF": {
+   "kind": "DoubleArray"
+  },
+  "ADJ_LAX_SENSOR_COEFF": {
+   "kind": "Double"
+  },
+  "ADJ_SHARP_LIMITER_COEFF": {
+   "kind": "Double"
+  },
+  "AEROELASTIC_ITER": {
+   "kind": "UnsignedShort"
+  },
+  "AIRFOIL_MASS_RATIO": {
+   "kind": "Double"
+  },
+  "AITKEN_DYN_MAX_INITIAL": {
+   "kind": "Double"
+  },
+  "AITKEN_DYN_MIN_INITIAL": {
+   "kind": "Double"
+  },
+  "ALIGNED_BYTES_MATMUL": {
+   "kind": "UnsignedShort"
+  },
+  "AOA": {
+   "kind": "Double"
+  },
+  "AUTO_DIFF": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "AVERAGE_MACH_LIMIT": {
+   "kind": "Double"
+  },
+  "AVERAGE_PROCESS_KIND": {
+   "kind": "Enum",
+   "values": [
+    "ALGEBRAIC",
+    "AREA",
+    "MIXEDOUT",
+    "MASSFLUX"
+   ]
+  },
+  "AXISYMMETRIC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "BASIS_GENERATION": {
+   "kind": "Enum",
+   "values": [
+    "STATIC_POD",
+    "INCREMENTAL_POD"
+   ]
+  },
+  "BC_EVAL_FREQ": {
+   "kind": "UnsignedLong"
+  },
+  "BEM_FREQ": {
+   "kind": "UnsignedShort"
+  },
+  "BEM_PROP_BLADE_ANGLE": {
+   "kind": "Double"
+  },
+  "BEM_PROP_FILENAME": {
+   "kind": "String"
+  },
+  "BETA_FACTOR": {
+   "kind": "Double"
+  },
+  "BGS_RELAXATION": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "FIXED_PARAMETER",
+    "AITKEN_DYNAMIC"
+   ]
+  },
+  "BODY_FORCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "BODY_FORCE_VECTOR": {
+   "kind": "DoubleArray"
+  },
+  "BREAKDOWN_FILENAME": {
+   "kind": "String"
+  },
+  "BUFFET_K": {
+   "kind": "Double"
+  },
+  "BUFFET_LAMBDA": {
+   "kind": "Double"
+  },
+  "BULK_MODULUS": {
+   "kind": "Double"
+  },
+  "CANTERA_COMBUSTION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CANTERA_CORRECTION_VELOCITY": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CANTERA_DC_MIN_TEMP": {
+   "kind": "Double"
+  },
+  "CANTERA_MECHANISM_FILE": {
+   "kind": "String"
+  },
+  "CANTERA_PHASE_NAME": {
+   "kind": "String"
+  },
+  "CANTERA_SOURCE_JACOBIAN": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CANTERA_SPARK_TEMPERATURE": {
+   "kind": "Double"
+  },
+  "CANTERA_SPECIES_NAMES": {
+   "kind": "StringList"
+  },
+  "CANTERA_TRANSPORT_MODEL": {
+   "kind": "String"
+  },
+  "CATALYTIC_EFFICIENCY": {
+   "kind": "Double"
+  },
+  "CATALYTIC_WALL": {
+   "kind": "StringList"
+  },
+  "CENTRAL_INC_JACOBIAN_FIX_FACTOR": {
+   "kind": "Double"
+  },
+  "CENTRAL_JACOBIAN_FIX_FACTOR": {
+   "kind": "Double"
+  },
+  "CENTRIFUGAL_FORCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CFL_ADAPT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CFL_ADAPT_PARAM": {
+   "kind": "DoubleList"
+  },
+  "CFL_NUMBER": {
+   "kind": "Double"
+  },
+  "CFL_NUMBER_RAD": {
+   "kind": "Double"
+  },
+  "CFL_REDUCTION_ADJFLOW": {
+   "kind": "Double"
+  },
+  "CFL_REDUCTION_ADJTURB": {
+   "kind": "Double"
+  },
+  "CFL_REDUCTION_SPECIES": {
+   "kind": "Double"
+  },
+  "CFL_REDUCTION_TURB": {
+   "kind": "Double"
+  },
+  "CG_LOCATION": {
+   "kind": "Double"
+  },
+  "CHECK_TAPE_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "OBJECTIVE_FUNCTION_TAPE",
+    "FULL_SOLVER_TAPE"
+   ]
+  },
+  "CHECK_TAPE_VARIABLES": {
+   "kind": "Enum",
+   "values": [
+    "SOLVER_VARIABLES",
+    "MESH_COORDINATES"
+   ]
+  },
+  "CHT_COUPLING_METHOD": {
+   "kind": "Enum",
+   "values": [
+    "DIRECT_TEMPERATURE_NEUMANN_HEATFLUX",
+    "AVERAGED_TEMPERATURE_NEUMANN_HEATFLUX",
+    "DIRECT_TEMPERATURE_ROBIN_HEATFLUX",
+    "AVERAGED_TEMPERATURE_ROBIN_HEATFLUX"
+   ]
+  },
+  "CHT_INTERFACE_CONTACT_RESISTANCE": {
+   "kind": "DoubleList"
+  },
+  "COMM_LEVEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "MINIMAL",
+    "FULL"
+   ]
+  },
+  "COMPUTE_AVERAGE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "COMPUTE_ENTROPY_FLUID_MODEL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CONDUCTIVITY_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "CONSTANT_CONDUCTIVITY",
+    "CONSTANT_PRANDTL",
+    "POLYNOMIAL_CONDUCTIVITY",
+    "FLAMELET",
+    "COOLPROP",
+    "CANTERA"
+   ]
+  },
+  "CONFIG_LIST": {
+   "kind": "StringList"
+  },
+  "CONFINEMENT_PARAM": {
+   "kind": "Double"
+  },
+  "CONSERVATIVE_INTERPOLATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CONSOLE": {
+   "kind": "Python"
+  },
+  "CONSTANT_LEWIS_NUMBER": {
+   "kind": "DoubleList"
+  },
+  "CONTROLLING_VARIABLE_NAMES": {
+   "kind": "StringList"
+  },
+  "CONTROLLING_VARIABLE_SOURCE_NAMES": {
+   "kind": "StringList"
+  },
+  "CONVEXITY_CHECK": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "CONVEXITY_CHECK_DEPTH": {
+   "kind": "UnsignedShort"
+  },
+  "CONVEXITY_CHECK_ITER": {
+   "kind": "UnsignedShort"
+  },
+  "CONV_CAUCHY_ELEMS": {
+   "kind": "UnsignedShort"
+  },
+  "CONV_CAUCHY_EPS": {
+   "kind": "Double"
+  },
+  "CONV_FIELD": {
+   "kind": "StringList"
+  },
+  "CONV_FILENAME": {
+   "kind": "String"
+  },
+  "CONV_NUM_METHOD_ADJFLOW": {
+   "kind": "Convect"
+  },
+  "CONV_NUM_METHOD_ADJTURB": {
+   "kind": "Convect"
+  },
+  "CONV_NUM_METHOD_FLOW": {
+   "kind": "Convect"
+  },
+  "CONV_NUM_METHOD_HEAT": {
+   "kind": "Convect"
+  },
+  "CONV_NUM_METHOD_SPECIES": {
+   "kind": "Convect"
+  },
+  "CONV_NUM_METHOD_TURB": {
+   "kind": "Convect"
+  },
+  "CONV_RESIDUAL_MINVAL": {
+   "kind": "Double"
+  },
+  "CONV_STARTITER": {
+   "kind": "UnsignedLong"
+  },
+  "CONV_WINDOW_CAUCHY_ELEMS": {
+   "kind": "UnsignedShort"
+  },
+  "CONV_WINDOW_CAUCHY_EPS": {
+   "kind": "Double"
+  },
+  "CONV_WINDOW_FIELD": {
+   "kind": "StringList"
+  },
+  "CONV_WINDOW_STARTITER": {
+   "kind": "UnsignedLong"
+  },
+  "CP_POLYCOEFFS": {
+   "kind": "DoubleArray"
+  },
+  "CRITICAL_DENSITY": {
+   "kind": "Double"
+  },
+  "CRITICAL_PRESSURE": {
+   "kind": "Double"
+  },
+  "CRITICAL_TEMPERATURE": {
+   "kind": "Double"
+  },
+  "CUSTOM_OBJFUNC": {
+   "kind": "String"
+  },
+  "CUSTOM_OUTPUTS": {
+   "kind": "String"
+  },
+  "DAMP_ENGINE_EXHAUST": {
+   "kind": "Double"
+  },
+  "DAMP_ENGINE_INFLOW": {
+   "kind": "Double"
+  },
+  "DAMP_TIME_FILTERING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "DATADRIVEN_NEWTON_RELAXATION": {
+   "kind": "Double"
+  },
+  "DCD_DCL_VALUE": {
+   "kind": "Double"
+  },
+  "DCL_DALPHA": {
+   "kind": "Double"
+  },
+  "DCMX_DCL_VALUE": {
+   "kind": "Double"
+  },
+  "DCMY_DCL_VALUE": {
+   "kind": "Double"
+  },
+  "DCMZ_DCL_VALUE": {
+   "kind": "Double"
+  },
+  "DECOMPOSED": {
+   "kind": "Python"
+  },
+  "DEFINITION_DV": {
+   "kind": "Python"
+  },
+  "DEFORM_COEFF": {
+   "kind": "Double"
+  },
+  "DEFORM_CONSOLE_OUTPUT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "DEFORM_ELASTICITY_MODULUS": {
+   "kind": "Double"
+  },
+  "DEFORM_KIND": {
+   "kind": "Enum",
+   "values": [
+    "ELASTIC",
+    "RBF"
+   ]
+  },
+  "DEFORM_LIMIT": {
+   "kind": "Double"
+  },
+  "DEFORM_LINEAR_SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "CONJUGATE_GRADIENT",
+    "BCGSTAB",
+    "FGMRES",
+    "RESTARTED_FGMRES",
+    "FGCRODR",
+    "SMOOTHER",
+    "PASTIX_LDLT",
+    "PASTIX_LU"
+   ]
+  },
+  "DEFORM_LINEAR_SOLVER_ERROR": {
+   "kind": "Double"
+  },
+  "DEFORM_LINEAR_SOLVER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "DEFORM_LINEAR_SOLVER_PREC": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "IDENTITY",
+    "JACOBI",
+    "LU_SGS",
+    "LINELET",
+    "ILU",
+    "Q_LU_SGS",
+    "Q_JACOBI",
+    "Q_IDENTITY",
+    "PASTIX_ILU",
+    "PASTIX_LU",
+    "PASTIX_LDLT"
+   ]
+  },
+  "DEFORM_MESH": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "DEFORM_NONLINEAR_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "DEFORM_POISSONS_RATIO": {
+   "kind": "Double"
+  },
+  "DEFORM_STIFFNESS_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "CONSTANT_STIFFNESS",
+    "INVERSE_VOLUME",
+    "WALL_DISTANCE"
+   ]
+  },
+  "DEFORM_STIFF_LAYER_SIZE": {
+   "kind": "Double"
+  },
+  "DESIGN_VARIABLE_FEA": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "YOUNG_MODULUS",
+    "POISSON_RATIO",
+    "DENSITY",
+    "DEAD_WEIGHT",
+    "ELECTRIC_FIELD"
+   ]
+  },
+  "DES_CONST": {
+   "kind": "Double"
+  },
+  "DES_CONST_1": {
+   "kind": "Double"
+  },
+  "DES_CONST_2": {
+   "kind": "Double"
+  },
+  "DE_EFFECTS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "DIFFUSIVITY_CONSTANT": {
+   "kind": "Double"
+  },
+  "DIFFUSIVITY_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "CONSTANT_DIFFUSIVITY",
+    "CONSTANT_SCHMIDT",
+    "UNITY_LEWIS",
+    "CONSTANT_LEWIS",
+    "FLAMELET",
+    "CANTERA"
+   ]
+  },
+  "DIRECT_DIFF": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "MACH",
+    "AOA",
+    "PRESSURE",
+    "TEMPERATURE",
+    "DENSITY",
+    "TURB2LAM",
+    "SIDESLIP",
+    "VISCOSITY",
+    "REYNOLDS",
+    "DESIGN_VARIABLES",
+    "YOUNG_MODULUS",
+    "POISSON_RATIO",
+    "STRUCTURAL_DENSITY",
+    "STRUCTURAL_DEAD_LOAD",
+    "ELECTRIC_FIELD"
+   ]
+  },
+  "DIRICHLET_SURFACE_BOUNDARY": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "DISCADJ_LIN_PREC": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "IDENTITY",
+    "JACOBI",
+    "LU_SGS",
+    "LINELET",
+    "ILU",
+    "Q_LU_SGS",
+    "Q_JACOBI",
+    "Q_IDENTITY",
+    "PASTIX_ILU",
+    "PASTIX_LU",
+    "PASTIX_LDLT"
+   ]
+  },
+  "DISCADJ_LIN_SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "CONJUGATE_GRADIENT",
+    "BCGSTAB",
+    "FGMRES",
+    "RESTARTED_FGMRES",
+    "FGCRODR",
+    "SMOOTHER",
+    "PASTIX_LDLT",
+    "PASTIX_LU"
+   ]
+  },
+  "DISCARD_INFILES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "DISTORTION_RACK": {
+   "kind": "DoubleArray"
+  },
+  "DNETTHRUST_DBCTHRUST": {
+   "kind": "Double"
+  },
+  "DRAG_IN_SONICBOOM": {
+   "kind": "Double"
+  },
+  "DV_FILENAME": {
+   "kind": "String"
+  },
+  "DV_KIND": {
+   "kind": "EnumList",
+   "values": [
+    "FFD_SETTING",
+    "FFD_CONTROL_POINT_2D",
+    "FFD_ANGLE_OF_ATTACK",
+    "FFD_CAMBER_2D",
+    "FFD_THICKNESS_2D",
+    "HICKS_HENNE",
+    "HICKS_HENNE_CAMBER",
+    "SURFACE_BUMP",
+    "ANGLE_OF_ATTACK",
+    "NACA_4DIGITS",
+    "TRANSLATION",
+    "ROTATION",
+    "SCALE",
+    "FFD_CONTROL_POINT",
+    "FFD_ROTATION",
+    "FFD_CONTROL_SURFACE",
+    "FFD_NACELLE",
+    "FFD_GULL",
+    "FFD_TWIST",
+    "FFD_CAMBER",
+    "FFD_THICKNESS",
+    "PARABOLIC",
+    "AIRFOIL",
+    "SURFACE_FILE",
+    "NO_DEFORMATION",
+    "CST",
+    "ELECTRIC_FIELD",
+    "YOUNG_MODULUS",
+    "POISSON_RATIO",
+    "STRUCTURAL_DENSITY",
+    "DEAD_WEIGHT",
+    "TRANSLATE_GRID",
+    "ROTATE_GRID",
+    "SCALE_GRID"
+   ]
+  },
+  "DV_MARKER": {
+   "kind": "StringList"
+  },
+  "DV_PARAM": {
+   "kind": "DVParam"
+  },
+  "DV_SENSITIVITY_FORMAT": {
+   "kind": "Enum",
+   "values": [
+    "SU2_NATIVE",
+    "UNORDERED_ASCII"
+   ]
+  },
+  "DV_SENS_FILENAME": {
+   "kind": "String"
+  },
+  "DV_UNORDERED_SENS_FILENAME": {
+   "kind": "String"
+  },
+  "DV_VALUE": {
+   "kind": "DVValue"
+  },
+  "DV_VALUE_NEW": {
+   "kind": "Python"
+  },
+  "DV_VALUE_OLD": {
+   "kind": "Python"
+  },
+  "DYNAMIC_LOAD_TRANSFER": {
+   "kind": "Enum",
+   "values": [
+    "INSTANTANEOUS",
+    "RAMP",
+    "CUBIC",
+    "QUINTIC",
+    "SIGMOID_10",
+    "SIGMOID_20"
+   ]
+  },
+  "EA_INT_LIMIT": {
+   "kind": "DoubleArray"
+  },
+  "EA_SCALE_FACTOR": {
+   "kind": "Double"
+  },
+  "EDGE_COLORING_GROUP_SIZE": {
+   "kind": "UnsignedLong"
+  },
+  "EDGE_COLORING_RELAX_DISC_ADJ": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ELASTICITY_MODULUS": {
+   "kind": "DoubleList"
+  },
+  "ELECTRIC_FIELD_CONST": {
+   "kind": "DoubleList"
+  },
+  "ELECTRIC_FIELD_DIR": {
+   "kind": "DoubleList"
+  },
+  "ELECTRIC_FIELD_MOD": {
+   "kind": "DoubleList"
+  },
+  "ENABLE_CUDA": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ENFORCE_LES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ENGINE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ENGINE_EXHAUST_TO_INLET": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ENGINE_HALF_MODEL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ENGINE_INFLOW_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "FAN_FACE_MACH",
+    "FAN_FACE_MDOT",
+    "FAN_FACE_PRESSURE"
+   ]
+  },
+  "ENGINE_NU_FACTOR": {
+   "kind": "Double"
+  },
+  "ENTROPY_FIX_COEFF": {
+   "kind": "Double"
+  },
+  "EQUIV_AREA": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "EVAL_DOF_DCX": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "EXTRA_HEAT_ZONE_OUTPUT": {
+   "kind": "Long"
+  },
+  "EXTRA_OUTPUT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "EXT_ITER_OFFSET": {
+   "kind": "UnsignedLong"
+  },
+  "FAN_POLY_EFF": {
+   "kind": "Double"
+  },
+  "FEA_ADVANCED_MODE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FEA_FILENAME": {
+   "kind": "String"
+  },
+  "FEA_ID_DIRECTDIFF": {
+   "kind": "UnsignedShort"
+  },
+  "FFD_AXIS": {
+   "kind": "DoubleArray"
+  },
+  "FFD_BLENDING": {
+   "kind": "Enum",
+   "values": [
+    "BSPLINE_UNIFORM",
+    "BEZIER"
+   ]
+  },
+  "FFD_BSPLINE_ORDER": {
+   "kind": "DoubleArray"
+  },
+  "FFD_CONTINUITY": {
+   "kind": "Enum",
+   "values": [
+    "NO_DERIVATIVE",
+    "1ST_DERIVATIVE",
+    "2ND_DERIVATIVE",
+    "USER_INPUT"
+   ]
+  },
+  "FFD_COORD_SYSTEM": {
+   "kind": "Enum",
+   "values": [
+    "CARTESIAN",
+    "CYLINDRICAL",
+    "SPHERICAL",
+    "POLAR"
+   ]
+  },
+  "FFD_DEFINITION": {
+   "kind": "FFDDef"
+  },
+  "FFD_DEGREE": {
+   "kind": "FFDDegree"
+  },
+  "FFD_FIX_I": {
+   "kind": "ShortList"
+  },
+  "FFD_FIX_J": {
+   "kind": "ShortList"
+  },
+  "FFD_FIX_K": {
+   "kind": "ShortList"
+  },
+  "FFD_INTPREV": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FFD_INTPREV_DEPTH": {
+   "kind": "UnsignedShort"
+  },
+  "FFD_INTPREV_ITER": {
+   "kind": "UnsignedShort"
+  },
+  "FFD_ITERATIONS": {
+   "kind": "UnsignedShort"
+  },
+  "FFD_SYMMETRY_PLANE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FFD_TOLERANCE": {
+   "kind": "Double"
+  },
+  "FILENAMES_INTERPOLATOR": {
+   "kind": "StringList"
+  },
+  "FILTER_STRESSES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FIN_DIFF_STEP": {
+   "kind": "Python"
+  },
+  "FIXED_CL_MODE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FIX_AZIMUTHAL_LINE": {
+   "kind": "Double"
+  },
+  "FLAME_ENTHALPY_BC": {
+   "kind": "Enum",
+   "values": [
+    "FLOW_MARKERS",
+    "SPECIES_MARKERS"
+   ]
+  },
+  "FLAME_INIT": {
+   "kind": "DoubleArray"
+  },
+  "FLAME_INIT_IGNITION": {
+   "kind": "Double"
+  },
+  "FLAME_INIT_METHOD": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "FLAME_FRONT",
+    "SPARK"
+   ]
+  },
+  "FLUID_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "STANDARD_AIR",
+    "IDEAL_GAS",
+    "VW_GAS",
+    "PR_GAS",
+    "CONSTANT_DENSITY",
+    "INC_IDEAL_GAS",
+    "INC_IDEAL_GAS_POLY",
+    "MUTATIONPP",
+    "SU2_NONEQ",
+    "FLUID_MIXTURE",
+    "COOLPROP",
+    "DATADRIVEN_FLUID",
+    "FLUID_FLAMELET",
+    "FLUID_CANTERA"
+   ]
+  },
+  "FLUID_NAME": {
+   "kind": "String"
+  },
+  "FLUTTER_SPEED_INDEX": {
+   "kind": "Double"
+  },
+  "FORMULATION_ELASTICITY_2D": {
+   "kind": "Enum"
+  },
+  "FREESTREAM_DENSITY": {
+   "kind": "Double"
+  },
+  "FREESTREAM_INTERMITTENCY": {
+   "kind": "Double"
+  },
+  "FREESTREAM_NU_FACTOR": {
+   "kind": "Double"
+  },
+  "FREESTREAM_OPTION": {
+   "kind": "Enum",
+   "values": [
+    "TEMPERATURE_FS",
+    "DENSITY_FS"
+   ]
+  },
+  "FREESTREAM_PRESSURE": {
+   "kind": "Double"
+  },
+  "FREESTREAM_TEMPERATURE": {
+   "kind": "Double"
+  },
+  "FREESTREAM_TEMPERATURE_VE": {
+   "kind": "Double"
+  },
+  "FREESTREAM_TURB2LAMVISCRATIO": {
+   "kind": "Double"
+  },
+  "FREESTREAM_TURBULENCEINTENSITY": {
+   "kind": "Double"
+  },
+  "FREESTREAM_VELOCITY": {
+   "kind": "DoubleArray"
+  },
+  "FREESTREAM_VISCOSITY": {
+   "kind": "Double"
+  },
+  "FROZEN_LIMITER_DISC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FROZEN_MIXTURE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FROZEN_VISC_CONT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "FROZEN_VISC_DISC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "GAMMA_VALUE": {
+   "kind": "Double"
+  },
+  "GAS_COMPOSITION": {
+   "kind": "DoubleList"
+  },
+  "GAS_CONSTANT": {
+   "kind": "Double"
+  },
+  "GAS_MODEL": {
+   "kind": "String"
+  },
+  "GEOMETRIC_CONDITIONS": {
+   "kind": "Enum",
+   "values": [
+    "SMALL_DEFORMATIONS",
+    "LARGE_DEFORMATIONS"
+   ]
+  },
+  "GEO_BOUNDS": {
+   "kind": "DoubleArray"
+  },
+  "GEO_DESCRIPTION": {
+   "kind": "Enum",
+   "values": [
+    "AIRFOIL",
+    "WING",
+    "FUSELAGE",
+    "NACELLE"
+   ]
+  },
+  "GEO_LOCATION_STATIONS": {
+   "kind": "DoubleList"
+  },
+  "GEO_MARKER": {
+   "kind": "StringList"
+  },
+  "GEO_MODE": {
+   "kind": "Enum",
+   "values": [
+    "FUNCTION",
+    "GRADIENT"
+   ]
+  },
+  "GEO_NACELLE_LOCATION": {
+   "kind": "DoubleArray"
+  },
+  "GEO_NUMBER_STATIONS": {
+   "kind": "UnsignedShort"
+  },
+  "GEO_PARAM": {
+   "kind": "Python"
+  },
+  "GEO_PLOT_STATIONS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "GEO_WATERLINE_LOCATION": {
+   "kind": "Double"
+  },
+  "GILES_EXTRA_RELAXFACTOR": {
+   "kind": "DoubleArray"
+  },
+  "GRADIENT_METHOD": {
+   "kind": "Python"
+  },
+  "GRAD_LINEAR_SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "CONJUGATE_GRADIENT",
+    "BCGSTAB",
+    "FGMRES",
+    "RESTARTED_FGMRES",
+    "FGCRODR",
+    "SMOOTHER",
+    "PASTIX_LDLT",
+    "PASTIX_LU"
+   ]
+  },
+  "GRAD_LINEAR_SOLVER_ERROR": {
+   "kind": "Double"
+  },
+  "GRAD_LINEAR_SOLVER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "GRAD_LINEAR_SOLVER_PREC": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "IDENTITY",
+    "JACOBI",
+    "LU_SGS",
+    "LINELET",
+    "ILU",
+    "Q_LU_SGS",
+    "Q_JACOBI",
+    "Q_IDENTITY",
+    "PASTIX_ILU",
+    "PASTIX_LU",
+    "PASTIX_LDLT"
+   ]
+  },
+  "GRAD_OBJFUNC_FILENAME": {
+   "kind": "String"
+  },
+  "GRAVITY_FORCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "GRID_MOVEMENT": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "RIGID_MOTION",
+    "ROTATING_FRAME",
+    "STEADY_TRANSLATION",
+    "GUST"
+   ]
+  },
+  "GUST_AMPL": {
+   "kind": "Double"
+  },
+  "GUST_BEGIN_LOC": {
+   "kind": "Double"
+  },
+  "GUST_BEGIN_TIME": {
+   "kind": "Double"
+  },
+  "GUST_DIR": {
+   "kind": "Enum",
+   "values": [
+    "X_DIR",
+    "Y_DIR",
+    "Z_DIR"
+   ]
+  },
+  "GUST_PERIODS": {
+   "kind": "Double"
+  },
+  "GUST_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "TOP_HAT",
+    "SINE",
+    "ONE_M_COSINE",
+    "VORTEX",
+    "EOG"
+   ]
+  },
+  "GUST_WAVELENGTH": {
+   "kind": "Double"
+  },
+  "HB_PERIOD": {
+   "kind": "Double"
+  },
+  "HB_PRECONDITION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "HEAT_SOURCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "HEAT_SOURCE_AXES": {
+   "kind": "DoubleArray"
+  },
+  "HEAT_SOURCE_CENTER": {
+   "kind": "DoubleArray"
+  },
+  "HEAT_SOURCE_ROTATION_Z": {
+   "kind": "Double"
+  },
+  "HEAT_SOURCE_VAL": {
+   "kind": "Double"
+  },
+  "HESS_OBJFUNC_FILENAME": {
+   "kind": "String"
+  },
+  "HIGHLITE_AREA": {
+   "kind": "Double"
+  },
+  "HISTORY_OUTPUT": {
+   "kind": "StringList"
+  },
+  "HISTORY_WRT_FREQ_INNER": {
+   "kind": "UnsignedLong"
+  },
+  "HISTORY_WRT_FREQ_OUTER": {
+   "kind": "UnsignedLong"
+  },
+  "HISTORY_WRT_FREQ_TIME": {
+   "kind": "UnsignedLong"
+  },
+  "HOLD_GRID_FIXED": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "HOLD_GRID_FIXED_COORD": {
+   "kind": "DoubleArray"
+  },
+  "HROUGHNESS": {
+   "kind": "Double"
+  },
+  "HYBRID_RANSLES": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "SA_DES",
+    "SA_DDES",
+    "SA_ZDES",
+    "SA_EDDES",
+    "SST_DDES",
+    "SST_DES",
+    "SST_ZDES",
+    "SST_EDDES",
+    "SST_IDDES"
+   ]
+  },
+  "INCONSISTENT_DISC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "INCREMENTAL_CRITERIA": {
+   "kind": "DoubleArray"
+  },
+  "INCREMENTAL_LOAD": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "INC_DENSITY_INIT": {
+   "kind": "Double"
+  },
+  "INC_DENSITY_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "CONSTANT",
+    "BOUSSINESQ",
+    "VARIABLE",
+    "FLAMELET"
+   ]
+  },
+  "INC_DENSITY_REF": {
+   "kind": "Double"
+  },
+  "INC_ENERGY_EQUATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "INC_INLET_DAMPING": {
+   "kind": "Double"
+  },
+  "INC_INLET_TYPE": {
+   "kind": "EnumList",
+   "values": [
+    "TOTAL_CONDITIONS",
+    "MASS_FLOW",
+    "INPUT_FILE",
+    "VELOCITY_INLET",
+    "PRESSURE_INLET"
+   ]
+  },
+  "INC_NONDIM": {
+   "kind": "Enum",
+   "values": [
+    "DIMENSIONAL",
+    "FREESTREAM_PRESS_EQ_ONE",
+    "FREESTREAM_VEL_EQ_MACH",
+    "FREESTREAM_VEL_EQ_ONE",
+    "INITIAL_VALUES",
+    "REFERENCE_VALUES"
+   ]
+  },
+  "INC_OUTLET_DAMPING": {
+   "kind": "Double"
+  },
+  "INC_OUTLET_TYPE": {
+   "kind": "EnumList",
+   "values": [
+    "PRESSURE_OUTLET",
+    "MASS_FLOW_OUTLET"
+   ]
+  },
+  "INC_TEMPERATURE_INIT": {
+   "kind": "Double"
+  },
+  "INC_TEMPERATURE_REF": {
+   "kind": "Double"
+  },
+  "INC_VELOCITY_INIT": {
+   "kind": "DoubleArray"
+  },
+  "INC_VELOCITY_REF": {
+   "kind": "Double"
+  },
+  "INITIAL_BCTHRUST": {
+   "kind": "Double"
+  },
+  "INIT_OPTION": {
+   "kind": "Enum",
+   "values": [
+    "REYNOLDS",
+    "TD_CONDITIONS"
+   ]
+  },
+  "INIT_OPTION_INC": {
+   "kind": "Enum",
+   "values": [
+    "DENSITY_INIT",
+    "OPERATING_PRESSURE"
+   ]
+  },
+  "INLET_FILENAME": {
+   "kind": "String"
+  },
+  "INLET_GAS_COMPOSITION": {
+   "kind": "DoubleList"
+  },
+  "INLET_INTERPOLATION_DATA_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "VR_VTHETA",
+    "ALPHA_PHI"
+   ]
+  },
+  "INLET_INTERPOLATION_FUNCTION": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "LINEAR_1D",
+    "AKIMA_1D",
+    "CUBIC_1D"
+   ]
+  },
+  "INLET_MATCHING_TOLERANCE": {
+   "kind": "Double"
+  },
+  "INLET_TEMPERATURE_VE": {
+   "kind": "Double"
+  },
+  "INLET_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "TOTAL_CONDITIONS",
+    "MASS_FLOW",
+    "INPUT_FILE",
+    "VELOCITY_INLET",
+    "PRESSURE_INLET"
+   ]
+  },
+  "INLET_USE_NORMAL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "INNER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "INTEGRATED_HEATFLUX": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "INTERPOLATION_METHOD": {
+   "kind": "Enum",
+   "values": [
+    "LUT",
+    "MLP"
+   ]
+  },
+  "INV_DESIGN_CP": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "INV_DESIGN_HEATFLUX": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "IONIZATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "ITER": {
+   "kind": "UnsignedLong"
+  },
+  "ITER_AVERAGE_OBJ": {
+   "kind": "Long"
+  },
+  "ITER_DCL_DALPHA": {
+   "kind": "UnsignedLong"
+  },
+  "JACOBIAN_SPATIAL_DISCRETIZATION_ONLY": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "JST_SENSOR_COEFF": {
+   "kind": "DoubleArray"
+  },
+  "KEEP_DUCROS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "KEEP_DUCROS_THRESHOLD": {
+   "kind": "Double"
+  },
+  "KIND_FEM_DG_SHOCK": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "PERSSON"
+   ]
+  },
+  "KIND_INCOMP_SYSTEM": {
+   "kind": "Enum",
+   "values": [
+    "DENSITY_BASED",
+    "PRESSURE_BASED"
+   ]
+  },
+  "KIND_INTERPOLATION": {
+   "kind": "Enum",
+   "values": [
+    "NEAREST_NEIGHBOR",
+    "ISOPARAMETRIC",
+    "WEIGHTED_AVERAGE",
+    "RADIAL_BASIS_FUNCTION"
+   ]
+  },
+  "KIND_MATRIX_COLORING": {
+   "kind": "Enum",
+   "values": [
+    "GREEDY_COLORING",
+    "NATURAL_COLORING"
+   ]
+  },
+  "KIND_MUSCL_RAMP": {
+   "kind": "Enum",
+   "values": [
+    "ITERATION",
+    "SMOOTH_FUNCTION"
+   ]
+  },
+  "KIND_PB_ITER": {
+   "kind": "Enum",
+   "values": [
+    "SIMPLE",
+    "SIMPLEC"
+   ]
+  },
+  "KIND_RADIAL_BASIS_FUNCTION": {
+   "kind": "Enum",
+   "values": [
+    "WENDLAND_C2",
+    "INV_MULTI_QUADRIC",
+    "GAUSSIAN",
+    "THIN_PLATE_SPLINE",
+    "MULTI_QUADRIC"
+   ]
+  },
+  "KIND_ROUGHSST_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "WILCOX1998",
+    "WILCOX2006",
+    "LIMITER_KNOPP",
+    "LIMITER_AUPOIX"
+   ]
+  },
+  "KIND_SCALAR_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "SPECIES_TRANSPORT",
+    "FLAMELET"
+   ]
+  },
+  "KIND_SGS_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "IMPLICIT_LES",
+    "SMAGORINSKY",
+    "WALE",
+    "VREMAN"
+   ]
+  },
+  "KIND_STREAMWISE_PERIODIC": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "PRESSURE_DROP",
+    "MASSFLOW"
+   ]
+  },
+  "KIND_TRANS_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "LM"
+   ]
+  },
+  "KIND_TURB_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "SA",
+    "SST"
+   ]
+  },
+  "KIND_VERIFICATION_SOLUTION": {
+   "kind": "Enum",
+   "values": [
+    "NO_VERIFICATION_SOLUTION",
+    "INVISCID_VORTEX",
+    "RINGLEB",
+    "NS_UNIT_QUAD",
+    "TAYLOR_GREEN_VORTEX",
+    "INC_TAYLOR_GREEN_VORTEX",
+    "MMS_NS_UNIT_QUAD",
+    "MMS_NS_UNIT_QUAD_WALL_BC",
+    "MMS_NS_TWO_HALF_CIRCLES",
+    "MMS_NS_TWO_HALF_SPHERES",
+    "MMS_INC_EULER",
+    "MMS_INC_NS",
+    "USER_DEFINED_SOLUTION"
+   ]
+  },
+  "KNOWLES_B": {
+   "kind": "Double"
+  },
+  "KNOWLES_N": {
+   "kind": "Double"
+  },
+  "KT_POLYCOEFFS": {
+   "kind": "DoubleArray"
+  },
+  "LAX_SENSOR_COEFF": {
+   "kind": "Double"
+  },
+  "LD2_COEFF": {
+   "kind": "Double"
+  },
+  "LES_FILTER_WIDTH": {
+   "kind": "Double"
+  },
+  "LEVELS_TIME_ACCURATE_LTS": {
+   "kind": "UnsignedShort"
+  },
+  "LIBROM_BASE_FILENAME": {
+   "kind": "String"
+  },
+  "LIMITER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "LIMIT_ADJFLOW": {
+   "kind": "Double"
+  },
+  "LINEAR_SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "CONJUGATE_GRADIENT",
+    "BCGSTAB",
+    "FGMRES",
+    "RESTARTED_FGMRES",
+    "FGCRODR",
+    "SMOOTHER",
+    "PASTIX_LDLT",
+    "PASTIX_LU"
+   ]
+  },
+  "LINEAR_SOLVER_ERROR": {
+   "kind": "Double"
+  },
+  "LINEAR_SOLVER_ILU_FILL_IN": {
+   "kind": "UnsignedShort"
+  },
+  "LINEAR_SOLVER_ILU_GPU_SWEEPS": {
+   "kind": "UnsignedShort"
+  },
+  "LINEAR_SOLVER_ILU_LEVEL_SCHEDULING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "LINEAR_SOLVER_INNER": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "BCGSTAB",
+    "SMOOTHER"
+   ]
+  },
+  "LINEAR_SOLVER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "LINEAR_SOLVER_PREC": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "IDENTITY",
+    "JACOBI",
+    "LU_SGS",
+    "LINELET",
+    "ILU",
+    "Q_LU_SGS",
+    "Q_JACOBI",
+    "Q_IDENTITY",
+    "PASTIX_ILU",
+    "PASTIX_LU",
+    "PASTIX_LDLT"
+   ]
+  },
+  "LINEAR_SOLVER_PREC_THREADS": {
+   "kind": "UnsignedLong"
+  },
+  "LINEAR_SOLVER_RESTART_DEFLATION": {
+   "kind": "UnsignedLong"
+  },
+  "LINEAR_SOLVER_RESTART_FREQUENCY": {
+   "kind": "UnsignedLong"
+  },
+  "LINEAR_SOLVER_SMOOTHER_RELAXATION": {
+   "kind": "Double"
+  },
+  "LM_OPTIONS": {
+   "kind": "EnumList",
+   "values": [
+    "NONE",
+    "LM2015",
+    "MALAN",
+    "SULUKSNA",
+    "KRAUSE",
+    "KRAUSE_HYPER",
+    "MEDIDA_BAEDER",
+    "MENTER_LANGTRY",
+    "DEFAULT"
+   ]
+  },
+  "LOOKUP_NAMES": {
+   "kind": "StringList"
+  },
+  "LOWER_LIMIT_K_FACTOR": {
+   "kind": "Double"
+  },
+  "LOWER_LIMIT_OMEGA_FACTOR": {
+   "kind": "Double"
+  },
+  "LOW_MACH_CORR": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "LOW_MACH_PREC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MACH_MOTION": {
+   "kind": "Double"
+  },
+  "MACH_NUMBER": {
+   "kind": "Double"
+  },
+  "MARKER_ACTDISK": {
+   "kind": "ActDisk"
+  },
+  "MARKER_ACTDISK_BEM_AXIS": {
+   "kind": "ActDiskBem"
+  },
+  "MARKER_ACTDISK_BEM_CG": {
+   "kind": "ActDiskBem"
+  },
+  "MARKER_ANALYZE": {
+   "kind": "StringList"
+  },
+  "MARKER_ANALYZE_AVERAGE": {
+   "kind": "Enum",
+   "values": [
+    "AREA",
+    "MASSFLUX"
+   ]
+  },
+  "MARKER_CHT_INTERFACE": {
+   "kind": "StringList"
+  },
+  "MARKER_CLAMPED": {
+   "kind": "StringList"
+  },
+  "MARKER_CREATE_COPY": {
+   "kind": "StringList"
+  },
+  "MARKER_CUSTOM": {
+   "kind": "StringList"
+  },
+  "MARKER_DAMPER": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_DEFORM_MESH": {
+   "kind": "StringList"
+  },
+  "MARKER_DEFORM_MESH_INTERNAL": {
+   "kind": "StringList"
+  },
+  "MARKER_DEFORM_MESH_SYM_PLANE": {
+   "kind": "StringList"
+  },
+  "MARKER_DESIGNING": {
+   "kind": "StringList"
+  },
+  "MARKER_DISPLACEMENT": {
+   "kind": "Inlet"
+  },
+  "MARKER_EMISSIVITY": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_ENGINE_EXHAUST": {
+   "kind": "Exhaust"
+  },
+  "MARKER_ENGINE_INFLOW": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_EULER": {
+   "kind": "StringList"
+  },
+  "MARKER_FAR": {
+   "kind": "StringList"
+  },
+  "MARKER_FLUID_INTERFACE": {
+   "kind": "StringList"
+  },
+  "MARKER_FLUID_LOAD": {
+   "kind": "StringList"
+  },
+  "MARKER_GILES": {
+   "kind": "Giles",
+   "values": [
+    "TOTAL_CONDITIONS_PT",
+    "DENSITY_VELOCITY",
+    "STATIC_PRESSURE",
+    "TOTAL_SUPERSONIC_INFLOW",
+    "STATIC_SUPERSONIC_INFLOW_PT",
+    "STATIC_SUPERSONIC_INFLOW_PD",
+    "MIXING_IN",
+    "MIXING_OUT",
+    "MIXING_IN_1D",
+    "MIXING_OUT_1D",
+    "SUPERSONIC_OUTFLOW",
+    "RADIAL_EQUILIBRIUM",
+    "TOTAL_CONDITIONS_PT_1D",
+    "STATIC_PRESSURE_1D",
+    "MASS_FLOW_OUTLET"
+   ]
+  },
+  "MARKER_HEATFLUX": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_HEATTRANSFER": {
+   "kind": "Exhaust"
+  },
+  "MARKER_INLET": {
+   "kind": "Inlet"
+  },
+  "MARKER_INLET_SPECIES": {
+   "kind": "InletSpecies"
+  },
+  "MARKER_INLET_TURBULENT": {
+   "kind": "InletTurb"
+  },
+  "MARKER_INTERNAL": {
+   "kind": "StringList"
+  },
+  "MARKER_ISOTHERMAL": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_LOAD": {
+   "kind": "Inlet"
+  },
+  "MARKER_MIXINGPLANE_INTERFACE": {
+   "kind": "StringList"
+  },
+  "MARKER_MONITORING": {
+   "kind": "StringList"
+  },
+  "MARKER_MOVING": {
+   "kind": "StringList"
+  },
+  "MARKER_NEARFIELD": {
+   "kind": "StringList"
+  },
+  "MARKER_NORMAL_DISPL": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_OUTLET": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_PERIODIC": {
+   "kind": "Periodic"
+  },
+  "MARKER_PLOTTING": {
+   "kind": "StringList"
+  },
+  "MARKER_PRESSURE": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_PYTHON_CUSTOM": {
+   "kind": "StringList"
+  },
+  "MARKER_RIEMANN": {
+   "kind": "Riemann",
+   "values": [
+    "TOTAL_CONDITIONS_PT",
+    "DENSITY_VELOCITY",
+    "STATIC_PRESSURE",
+    "TOTAL_SUPERSONIC_INFLOW",
+    "STATIC_SUPERSONIC_INFLOW_PT",
+    "STATIC_SUPERSONIC_INFLOW_PD",
+    "MIXING_IN",
+    "MIXING_OUT",
+    "MIXING_IN_1D",
+    "MIXING_OUT_1D",
+    "SUPERSONIC_OUTFLOW",
+    "RADIAL_EQUILIBRIUM",
+    "TOTAL_CONDITIONS_PT_1D",
+    "STATIC_PRESSURE_1D",
+    "MASS_FLOW_OUTLET"
+   ]
+  },
+  "MARKER_SHROUD": {
+   "kind": "StringList"
+  },
+  "MARKER_SMOLUCHOWSKI_MAXWELL": {
+   "kind": "StringDoubleList"
+  },
+  "MARKER_SOBOLEVBC": {
+   "kind": "StringList"
+  },
+  "MARKER_SPECIES_STRONG_BC": {
+   "kind": "StringList"
+  },
+  "MARKER_SUPERSONIC_INLET": {
+   "kind": "Inlet"
+  },
+  "MARKER_SUPERSONIC_OUTLET": {
+   "kind": "StringList"
+  },
+  "MARKER_SYM": {
+   "kind": "StringList"
+  },
+  "MARKER_TURBOMACHINERY": {
+   "kind": "TurboPerf"
+  },
+  "MARKER_WALL_FUNCTIONS": {
+   "kind": "WallFunction"
+  },
+  "MARKER_WALL_SPECIES": {
+   "kind": "WallSpecies",
+   "values": [
+    "FLUX",
+    "VALUE"
+   ]
+  },
+  "MARKER_ZONE_INTERFACE": {
+   "kind": "StringList"
+  },
+  "MATERIAL_COMPRESSIBILITY": {
+   "kind": "Enum",
+   "values": [
+    "COMPRESSIBLE",
+    "NEARLY_INCOMPRESSIBLE"
+   ]
+  },
+  "MATERIAL_DENSITY": {
+   "kind": "DoubleList"
+  },
+  "MATERIAL_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "LINEAR_ELASTIC",
+    "NEO_HOOKEAN",
+    "KNOWLES",
+    "IDEAL_DE"
+   ]
+  },
+  "MATERIAL_REFERENCE_TEMPERATURE": {
+   "kind": "Double"
+  },
+  "MATERIAL_THERMAL_EXPANSION_COEFF": {
+   "kind": "DoubleList"
+  },
+  "MATH_PROBLEM": {
+   "kind": "MathProblem"
+  },
+  "MAX_BASIS_DIM": {
+   "kind": "UnsignedShort"
+  },
+  "MAX_DELTA_TIME": {
+   "kind": "Double"
+  },
+  "MAX_ROE_TURKEL_PREC": {
+   "kind": "Double"
+  },
+  "MAX_TIME": {
+   "kind": "Double"
+  },
+  "MAX_UPDATE_FLOW": {
+   "kind": "Double"
+  },
+  "MAX_UPDATE_SA": {
+   "kind": "Double"
+  },
+  "MAX_UPDATE_SST": {
+   "kind": "Double"
+  },
+  "MESH_BOX_LENGTH": {
+   "kind": "DoubleArray"
+  },
+  "MESH_BOX_OFFSET": {
+   "kind": "DoubleArray"
+  },
+  "MESH_BOX_POLY_SOL_FEM": {
+   "kind": "UnsignedShort"
+  },
+  "MESH_BOX_SIZE": {
+   "kind": "ShortList"
+  },
+  "MESH_FILENAME": {
+   "kind": "String"
+  },
+  "MESH_FORMAT": {
+   "kind": "Enum",
+   "values": [
+    "SU2",
+    "SU2B",
+    "CGNS",
+    "RECTANGLE",
+    "BOX"
+   ]
+  },
+  "MESH_OUT_FILENAME": {
+   "kind": "String"
+  },
+  "MESH_OUT_FORMAT": {
+   "kind": "Enum",
+   "values": [
+    "SU2",
+    "SU2B"
+   ]
+  },
+  "MGCYCLE": {
+   "kind": "Enum",
+   "values": [
+    "V_CYCLE",
+    "W_CYCLE",
+    "FULLMG_CYCLE"
+   ]
+  },
+  "MGLEVEL": {
+   "kind": "UnsignedShort"
+  },
+  "MG_ADJFLOW": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MG_CFL_SCALING": {
+   "kind": "DoubleList"
+  },
+  "MG_CORRECTION_SMOOTH": {
+   "kind": "UShortList"
+  },
+  "MG_DAMP_PROLONGATION": {
+   "kind": "Double"
+  },
+  "MG_DAMP_RESTRICTION": {
+   "kind": "Double"
+  },
+  "MG_IMPLICIT_LINES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MG_MIN_MESHSIZE": {
+   "kind": "UnsignedLong"
+  },
+  "MG_POST_SMOOTH": {
+   "kind": "UShortList"
+  },
+  "MG_PRE_SMOOTH": {
+   "kind": "UShortList"
+  },
+  "MG_SMOOTH_COEFF": {
+   "kind": "Double"
+  },
+  "MG_SMOOTH_EARLY_EXIT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MG_SMOOTH_OUTPUT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MG_SMOOTH_RES_THRESHOLD": {
+   "kind": "Double"
+  },
+  "MG_SMOOTH_STAGNATION_TOL": {
+   "kind": "Double"
+  },
+  "MG_STARTUP_CONVERGENCE": {
+   "kind": "Double"
+  },
+  "MG_STARTUP_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "MG_STARTUP_STAGNATION": {
+   "kind": "Double"
+  },
+  "MG_STARTUP_STAGNATION_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "MIN_ROE_TURKEL_PREC": {
+   "kind": "Double"
+  },
+  "MIXEDOUT_COEFF": {
+   "kind": "DoubleArray"
+  },
+  "MIXINGPLANE_INTERFACE_KIND": {
+   "kind": "Enum",
+   "values": [
+    "MATCHING",
+    "NEAREST_SPAN",
+    "LINEAR_INTERPOLATION"
+   ]
+  },
+  "MIXING_VISCOSITY_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "WILKE",
+    "DAVIDSON"
+   ]
+  },
+  "MOLECULAR_WEIGHT": {
+   "kind": "DoubleList"
+  },
+  "MOTION_ORIGIN": {
+   "kind": "DoubleArray"
+  },
+  "MOVE_MOTION_ORIGIN": {
+   "kind": "UShortList"
+  },
+  "MSW_ALPHA": {
+   "kind": "Double"
+  },
+  "MULTIPOINT_AOA": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_FREESTREAM_PRESSURE": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_FREESTREAM_TEMPERATURE": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_MACH_NUMBER": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_MESH_FILENAME": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_OUTLET_VALUE": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_REYNOLDS_NUMBER": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_SIDESLIP_ANGLE": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_TARGET_CL": {
+   "kind": "Python"
+  },
+  "MULTIPOINT_WEIGHT": {
+   "kind": "Python"
+  },
+  "MULTIZONE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MULTIZONE_ADAPT_FILENAME": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MULTIZONE_MESH": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MULTIZONE_RESIDUAL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MULTIZONE_SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "BLOCK_GAUSS_SEIDEL",
+    "BLOCK_JACOBI"
+   ]
+  },
+  "MUSCL_ADJFLOW": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MUSCL_ADJTURB": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MUSCL_FLOW": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MUSCL_HEAT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MUSCL_KAPPA_ADJFLOW": {
+   "kind": "Double"
+  },
+  "MUSCL_KAPPA_FLOW": {
+   "kind": "Double"
+  },
+  "MUSCL_KAPPA_HEAT": {
+   "kind": "Double"
+  },
+  "MUSCL_KAPPA_SPECIES": {
+   "kind": "Double"
+  },
+  "MUSCL_KAPPA_TURB": {
+   "kind": "Double"
+  },
+  "MUSCL_SPECIES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MUSCL_TURB": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "MU_CONSTANT": {
+   "kind": "DoubleList"
+  },
+  "MU_POLYCOEFFS": {
+   "kind": "DoubleArray"
+  },
+  "MU_REF": {
+   "kind": "DoubleList"
+  },
+  "MU_T_REF": {
+   "kind": "DoubleList"
+  },
+  "NEWMARK_BETA": {
+   "kind": "Double"
+  },
+  "NEWMARK_GAMMA": {
+   "kind": "Double"
+  },
+  "NEWTON_KRYLOV": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "NEWTON_KRYLOV_DPARAM": {
+   "kind": "DoubleArray"
+  },
+  "NEWTON_KRYLOV_IPARAM": {
+   "kind": "UShortArray"
+  },
+  "NONLINEAR_FEM_SOLUTION_METHOD": {
+   "kind": "Enum"
+  },
+  "NUMBER_INCREMENTS": {
+   "kind": "UnsignedLong"
+  },
+  "NUMBER_PART": {
+   "kind": "Python"
+  },
+  "NUM_METHOD_FEM_FLOW": {
+   "kind": "ConvectFEM"
+  },
+  "NUM_METHOD_GRAD": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "GREEN_GAUSS",
+    "LEAST_SQUARES",
+    "WEIGHTED_LEAST_SQUARES"
+   ]
+  },
+  "NUM_METHOD_GRAD_RECON": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "GREEN_GAUSS",
+    "LEAST_SQUARES",
+    "WEIGHTED_LEAST_SQUARES"
+   ]
+  },
+  "NUM_NEAREST_NEIGHBORS": {
+   "kind": "UnsignedShort"
+  },
+  "NUM_SPANWISE_SECTIONS": {
+   "kind": "UnsignedShort"
+  },
+  "NZONES": {
+   "kind": "Python"
+  },
+  "OBJECTIVE_FUNCTION": {
+   "kind": "EnumList",
+   "values": [
+    "DRAG",
+    "LIFT",
+    "SIDEFORCE",
+    "EFFICIENCY",
+    "INVERSE_DESIGN_PRESSURE",
+    "INVERSE_DESIGN_HEATFLUX",
+    "MOMENT_X",
+    "MOMENT_Y",
+    "MOMENT_Z",
+    "EQUIVALENT_AREA",
+    "NEARFIELD_PRESSURE",
+    "FORCE_X",
+    "FORCE_Y",
+    "FORCE_Z",
+    "THRUST",
+    "TORQUE",
+    "TOTAL_HEATFLUX",
+    "MAXIMUM_HEATFLUX",
+    "AVG_TEMPERATURE",
+    "FIGURE_OF_MERIT",
+    "BUFFET",
+    "SURFACE_TOTAL_PRESSURE",
+    "SURFACE_STATIC_PRESSURE",
+    "SURFACE_STATIC_TEMPERATURE",
+    "SURFACE_MASSFLOW",
+    "SURFACE_MACH",
+    "SURFACE_UNIFORMITY",
+    "SURFACE_SECONDARY",
+    "SURFACE_MOM_DISTORTION",
+    "SURFACE_SECOND_OVER_UNIFORM",
+    "SURFACE_PRESSURE_DROP",
+    "SURFACE_SPECIES_0",
+    "SURFACE_SPECIES_VARIANCE",
+    "CUSTOM_OBJFUNC",
+    "REFERENCE_GEOMETRY",
+    "REFERENCE_NODE",
+    "VOLUME_FRACTION",
+    "TOPOL_DISCRETENESS",
+    "TOPOL_COMPLIANCE",
+    "STRESS_PENALTY",
+    "ENTROPY_GENERATION",
+    "TOTAL_PRESSURE_LOSS",
+    "KINETIC_ENERGY_LOSS"
+   ]
+  },
+  "OBJECTIVE_WEIGHT": {
+   "kind": "DoubleList"
+  },
+  "OMEGA_HB": {
+   "kind": "DoubleList"
+  },
+  "OPT_ACCURACY": {
+   "kind": "Python"
+  },
+  "OPT_BOUND_LOWER": {
+   "kind": "Python"
+  },
+  "OPT_BOUND_UPPER": {
+   "kind": "Python"
+  },
+  "OPT_COMBINE_OBJECTIVE": {
+   "kind": "Python"
+  },
+  "OPT_CONSTRAINT": {
+   "kind": "Python"
+  },
+  "OPT_GRADIENT_FACTOR": {
+   "kind": "Python"
+  },
+  "OPT_ITERATIONS": {
+   "kind": "Python"
+  },
+  "OPT_LINE_SEARCH_BOUND": {
+   "kind": "Double"
+  },
+  "OPT_OBJECTIVE": {
+   "kind": "Python"
+  },
+  "OPT_RELAX_FACTOR": {
+   "kind": "Double"
+  },
+  "OUTER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "OUTLIER_MITIGATION_PARAM": {
+   "kind": "ULongArray"
+  },
+  "OUTPUT_FILES": {
+   "kind": "EnumList",
+   "values": [
+    "TECPLOT_ASCII",
+    "TECPLOT",
+    "SURFACE_TECPLOT_ASCII",
+    "SURFACE_TECPLOT",
+    "CSV",
+    "SURFACE_CSV",
+    "PARAVIEW_ASCII",
+    "PARAVIEW_LEGACY",
+    "SURFACE_PARAVIEW_ASCII",
+    "SURFACE_PARAVIEW_LEGACY",
+    "PARAVIEW",
+    "SURFACE_PARAVIEW",
+    "PARAVIEW_MULTIBLOCK",
+    "MESH",
+    "MESH_BINARY",
+    "RESTART_ASCII",
+    "RESTART",
+    "CGNS",
+    "SURFACE_CGNS",
+    "STL_ASCII",
+    "STL_BINARY"
+   ]
+  },
+  "OUTPUT_PRECISION": {
+   "kind": "UnsignedShort"
+  },
+  "OUTPUT_WRT_FREQ": {
+   "kind": "ULongList"
+  },
+  "P1_INITIALIZATION": {
+   "kind": "Enum",
+   "values": [
+    "ZERO",
+    "TEMPERATURE_INIT"
+   ]
+  },
+  "PARMETIS_EDGE_WEIGHT": {
+   "kind": "Long"
+  },
+  "PARMETIS_POINT_WEIGHT": {
+   "kind": "Long"
+  },
+  "PARMETIS_TOLERANCE": {
+   "kind": "Double"
+  },
+  "PASTIX_FACTORIZATION_FREQUENCY": {
+   "kind": "UnsignedLong"
+  },
+  "PASTIX_FILL_LEVEL": {
+   "kind": "UnsignedShort"
+  },
+  "PASTIX_VERBOSITY_LEVEL": {
+   "kind": "UnsignedShort"
+  },
+  "PERFORMANCE_AVERAGE_PROCESS_KIND": {
+   "kind": "Enum",
+   "values": [
+    "ALGEBRAIC",
+    "AREA",
+    "MIXEDOUT",
+    "MASSFLUX"
+   ]
+  },
+  "PISO_CORRECTIONS": {
+   "kind": "UnsignedShort"
+  },
+  "PITCHING_AMPL": {
+   "kind": "DoubleArray"
+  },
+  "PITCHING_OMEGA": {
+   "kind": "DoubleArray"
+  },
+  "PITCHING_PHASE": {
+   "kind": "DoubleArray"
+  },
+  "PITCH_NATURAL_FREQUENCY": {
+   "kind": "Double"
+  },
+  "PLUNGE_NATURAL_FREQUENCY": {
+   "kind": "Double"
+  },
+  "PLUNGING_AMPL": {
+   "kind": "DoubleArray"
+  },
+  "PLUNGING_OMEGA": {
+   "kind": "DoubleArray"
+  },
+  "POISSON_LINEAR_SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "CONJUGATE_GRADIENT",
+    "BCGSTAB",
+    "FGMRES",
+    "RESTARTED_FGMRES",
+    "FGCRODR",
+    "SMOOTHER",
+    "PASTIX_LDLT",
+    "PASTIX_LU"
+   ]
+  },
+  "POISSON_LINEAR_SOLVER_ERROR": {
+   "kind": "Double"
+  },
+  "POISSON_LINEAR_SOLVER_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "POISSON_LINEAR_SOLVER_PREC": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "IDENTITY",
+    "JACOBI",
+    "LU_SGS",
+    "LINELET",
+    "ILU",
+    "Q_LU_SGS",
+    "Q_JACOBI",
+    "Q_IDENTITY",
+    "PASTIX_ILU",
+    "PASTIX_LU",
+    "PASTIX_LDLT"
+   ]
+  },
+  "POISSON_RATIO": {
+   "kind": "DoubleList"
+  },
+  "PRANDTL_LAM": {
+   "kind": "DoubleList"
+  },
+  "PRANDTL_TURB": {
+   "kind": "DoubleList"
+  },
+  "PREACC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "PREDICTOR": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "PREDICTOR_ORDER": {
+   "kind": "UnsignedShort"
+  },
+  "PREFERENTIAL_DIFFUSION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "PRESTRETCH": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "PRESTRETCH_FILENAME": {
+   "kind": "String"
+  },
+  "PRINT_INLET_INTERPOLATED_DATA": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "PSEUDO_STATIC": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "PYTHON_CUSTOM_SOURCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "QUADRATURE_FACTOR_CURVED_FEM": {
+   "kind": "Double"
+  },
+  "QUADRATURE_FACTOR_STRAIGHT_FEM": {
+   "kind": "Double"
+  },
+  "QUADRATURE_FACTOR_TIME_ADER_DG": {
+   "kind": "Double"
+  },
+  "QUASI_NEWTON_NUM_SAMPLES": {
+   "kind": "UnsignedShort"
+  },
+  "RADIAL_BASIS_FUNCTION_PARAMETER": {
+   "kind": "Double"
+  },
+  "RADIAL_BASIS_FUNCTION_POLYNOMIAL_TERM": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RADIAL_BASIS_FUNCTION_PRUNE_TOLERANCE": {
+   "kind": "Double"
+  },
+  "RADIATION_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "P1"
+   ]
+  },
+  "RADIUS_GYRATION_SQUARED": {
+   "kind": "Double"
+  },
+  "RAMP_AND_RELEASE_LOAD": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RAMP_FSI_ITER": {
+   "kind": "UnsignedShort"
+  },
+  "RAMP_LOADING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RAMP_MOTION_FRAME": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RAMP_MOTION_FRAME_COEFF": {
+   "kind": "DoubleArray"
+  },
+  "RAMP_MUSCL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RAMP_MUSCL_COEFF": {
+   "kind": "ULongArray"
+  },
+  "RAMP_MUSCL_POWER": {
+   "kind": "Double"
+  },
+  "RAMP_OUTLET": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RAMP_OUTLET_COEFF": {
+   "kind": "DoubleArray"
+  },
+  "RAMP_TIME": {
+   "kind": "Double"
+  },
+  "RBF_DATA_REDUCTION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RBF_GREEDY_TOLERANCE": {
+   "kind": "Double"
+  },
+  "RCM_NUM_SEEDS": {
+   "kind": "UnsignedShort"
+  },
+  "READ_BINARY_RESTART": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "REFERENCE_GEOMETRY": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "REFERENCE_GEOMETRY_FILENAME": {
+   "kind": "String"
+  },
+  "REFERENCE_GEOMETRY_FORMAT": {
+   "kind": "Enum",
+   "values": [
+    "SU2",
+    "CUSTOM"
+   ]
+  },
+  "REFERENCE_GEOMETRY_PENALTY": {
+   "kind": "Double"
+  },
+  "REFERENCE_GEOMETRY_SURFACE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "REFERENCE_NODE": {
+   "kind": "UnsignedLong"
+  },
+  "REFERENCE_NODE_DISPLACEMENT": {
+   "kind": "DoubleList"
+  },
+  "REFERENCE_NODE_PENALTY": {
+   "kind": "Double"
+  },
+  "REF_AREA": {
+   "kind": "Double"
+  },
+  "REF_DIMENSIONALIZATION": {
+   "kind": "Enum",
+   "values": [
+    "DIMENSIONAL",
+    "FREESTREAM_PRESS_EQ_ONE",
+    "FREESTREAM_VEL_EQ_MACH",
+    "FREESTREAM_VEL_EQ_ONE",
+    "INITIAL_VALUES",
+    "REFERENCE_VALUES"
+   ]
+  },
+  "REF_LENGTH": {
+   "kind": "Double"
+  },
+  "REF_ORIGIN_MOMENT_X": {
+   "kind": "DoubleList"
+  },
+  "REF_ORIGIN_MOMENT_Y": {
+   "kind": "DoubleList"
+  },
+  "REF_ORIGIN_MOMENT_Z": {
+   "kind": "DoubleList"
+  },
+  "REF_SHARP_EDGES": {
+   "kind": "Double"
+  },
+  "REF_VELOCITY": {
+   "kind": "Double"
+  },
+  "REF_VISCOSITY": {
+   "kind": "Double"
+  },
+  "RELATIVE_FRAME_SLIDINGPLANE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RELAXATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RELAXATION_FACTOR_ADJOINT": {
+   "kind": "Double"
+  },
+  "RELAXATION_FACTOR_CHT": {
+   "kind": "Double"
+  },
+  "RELAXATION_FACTOR_PRESSURE": {
+   "kind": "Double"
+  },
+  "REORIENT_ELEMENTS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RESTART_ADJ_FILENAME": {
+   "kind": "String"
+  },
+  "RESTART_AVERAGE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RESTART_AVG_FIELDS": {
+   "kind": "StringList"
+  },
+  "RESTART_FILENAME": {
+   "kind": "String"
+  },
+  "RESTART_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "RESTART_ITER_AVERAGE": {
+   "kind": "UnsignedLong"
+  },
+  "RESTART_SOL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "RESTART_STEADY_STATE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "REYNOLDS_LENGTH": {
+   "kind": "Double"
+  },
+  "REYNOLDS_NUMBER": {
+   "kind": "Double"
+  },
+  "RIEMANN_SOLVER_FEM": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "ROE",
+    "TURKEL_PREC",
+    "AUSM",
+    "AUSMPLUSUP",
+    "AUSMPLUSUP2",
+    "AUSMPLUSM",
+    "SLAU",
+    "HLLC",
+    "SW",
+    "MSW",
+    "SCALAR_UPWIND",
+    "BOUNDED_SCALAR",
+    "CONVECTIVE_TEMPLATE",
+    "L2ROE",
+    "LMROE",
+    "SLAU2",
+    "FDS",
+    "LAX-FRIEDRICH",
+    "UDS"
+   ]
+  },
+  "RK_ALPHA_COEFF": {
+   "kind": "DoubleList"
+  },
+  "ROE_KAPPA": {
+   "kind": "Double"
+  },
+  "ROE_LOW_DISSIPATION": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "FD",
+    "NTS",
+    "NTS_DUCROS",
+    "FD_DUCROS"
+   ]
+  },
+  "ROM_SAVE_FREQ": {
+   "kind": "UnsignedShort"
+  },
+  "ROTATION_RATE": {
+   "kind": "DoubleArray"
+  },
+  "SAVE_LIBROM": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SA_DES_NO_DAMPING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SA_OPTIONS": {
+   "kind": "EnumList",
+   "values": [
+    "NONE",
+    "NEGATIVE",
+    "EDWARDS",
+    "WITHFT2",
+    "QCR2000",
+    "COMPRESSIBILITY",
+    "ROTATION",
+    "BCM",
+    "EXPERIMENTAL"
+   ]
+  },
+  "SBS_BESSEL_SCALING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_BOX_BOUNDS": {
+   "kind": "DoubleArray"
+  },
+  "SBS_DAMP_SOURCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_INTENSITY_COEFF": {
+   "kind": "Double"
+  },
+  "SBS_IN_BOX": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_KAPPA_4TH": {
+   "kind": "Double"
+  },
+  "SBS_LENGTHSCALE_COEFF": {
+   "kind": "Double"
+  },
+  "SBS_MAX_ITER_SMOOTH": {
+   "kind": "UnsignedShort"
+  },
+  "SBS_RANS_CONSTRAINT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_RESTART": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_SOURCE_DIAGNOSTICS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_SOURCE_TURB": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_SOURCE_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "WHITE_NOISE",
+    "ORNSTEIN_UHLENBECK",
+    "LANGEVIN"
+   ]
+  },
+  "SBS_TIMESCALE_COEFF": {
+   "kind": "Double"
+  },
+  "SBS_TIMESCALE_CONV_MAX": {
+   "kind": "Double"
+  },
+  "SBS_TKE_STRAIN": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SBS_USE_MEAN_TURB": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SCATTERING_COEFF": {
+   "kind": "Double"
+  },
+  "SCHMIDT_NUMBER_LAMINAR": {
+   "kind": "Double"
+  },
+  "SCHMIDT_NUMBER_TURBULENT": {
+   "kind": "Double"
+  },
+  "SCREEN_OUTPUT": {
+   "kind": "StringList"
+  },
+  "SCREEN_WRT_FREQ_INNER": {
+   "kind": "UnsignedLong"
+  },
+  "SCREEN_WRT_FREQ_OUTER": {
+   "kind": "UnsignedLong"
+  },
+  "SCREEN_WRT_FREQ_TIME": {
+   "kind": "UnsignedLong"
+  },
+  "SEMI_SPAN": {
+   "kind": "Double"
+  },
+  "SENS_REMOVE_SHARP": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SENS_SMOOTHING": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "SOBOLEV",
+    "BIGRID"
+   ]
+  },
+  "SEPARATE_DIMENSIONS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SIDESLIP_ANGLE": {
+   "kind": "Double"
+  },
+  "SINE_LOAD": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SINE_LOAD_COEFF": {
+   "kind": "DoubleArray"
+  },
+  "SLOPE_LIMITER_ADJFLOW": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "VENKATAKRISHNAN",
+    "NISHIKAWA_R3",
+    "NISHIKAWA_R4",
+    "NISHIKAWA_R5",
+    "VENKATAKRISHNAN_WANG",
+    "BARTH_JESPERSEN",
+    "VAN_ALBADA_EDGE",
+    "SHARP_EDGES",
+    "WALL_DISTANCE"
+   ]
+  },
+  "SLOPE_LIMITER_ADJTURB": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "VENKATAKRISHNAN",
+    "NISHIKAWA_R3",
+    "NISHIKAWA_R4",
+    "NISHIKAWA_R5",
+    "VENKATAKRISHNAN_WANG",
+    "BARTH_JESPERSEN",
+    "VAN_ALBADA_EDGE",
+    "SHARP_EDGES",
+    "WALL_DISTANCE"
+   ]
+  },
+  "SLOPE_LIMITER_FLOW": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "VENKATAKRISHNAN",
+    "NISHIKAWA_R3",
+    "NISHIKAWA_R4",
+    "NISHIKAWA_R5",
+    "VENKATAKRISHNAN_WANG",
+    "BARTH_JESPERSEN",
+    "VAN_ALBADA_EDGE",
+    "SHARP_EDGES",
+    "WALL_DISTANCE"
+   ]
+  },
+  "SLOPE_LIMITER_HEAT": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "VENKATAKRISHNAN",
+    "NISHIKAWA_R3",
+    "NISHIKAWA_R4",
+    "NISHIKAWA_R5",
+    "VENKATAKRISHNAN_WANG",
+    "BARTH_JESPERSEN",
+    "VAN_ALBADA_EDGE",
+    "SHARP_EDGES",
+    "WALL_DISTANCE"
+   ]
+  },
+  "SLOPE_LIMITER_SPECIES": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "VENKATAKRISHNAN",
+    "NISHIKAWA_R3",
+    "NISHIKAWA_R4",
+    "NISHIKAWA_R5",
+    "VENKATAKRISHNAN_WANG",
+    "BARTH_JESPERSEN",
+    "VAN_ALBADA_EDGE",
+    "SHARP_EDGES",
+    "WALL_DISTANCE"
+   ]
+  },
+  "SLOPE_LIMITER_TURB": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "VENKATAKRISHNAN",
+    "NISHIKAWA_R3",
+    "NISHIKAWA_R4",
+    "NISHIKAWA_R5",
+    "VENKATAKRISHNAN_WANG",
+    "BARTH_JESPERSEN",
+    "VAN_ALBADA_EDGE",
+    "SHARP_EDGES",
+    "WALL_DISTANCE"
+   ]
+  },
+  "SMOOTHING_EPSILON1": {
+   "kind": "Double"
+  },
+  "SMOOTHING_EPSILON2": {
+   "kind": "Double"
+  },
+  "SMOOTH_GRADIENT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SMOOTH_ON_SURFACE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SOBOLEV_MODE": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "PARAM_LEVEL_COMPLETE",
+    "MESH_LEVEL",
+    "ONLY_GRADIENT"
+   ]
+  },
+  "SOLUTION_ADJ_FILENAME": {
+   "kind": "String"
+  },
+  "SOLUTION_FILENAME": {
+   "kind": "String"
+  },
+  "SOLVER": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "EULER",
+    "NAVIER_STOKES",
+    "RANS",
+    "INC_EULER",
+    "INC_NAVIER_STOKES",
+    "INC_RANS",
+    "INC_LES",
+    "LES",
+    "FEM_EULER",
+    "FEM_NAVIER_STOKES",
+    "FEM_RANS",
+    "FEM_LES",
+    "NEMO_EULER",
+    "NEMO_NAVIER_STOKES",
+    "HEAT_EQUATION",
+    "ELASTICITY",
+    "TEMPLATE_SOLVER",
+    "MULTIPHYSICS"
+   ]
+  },
+  "SPANWISE_KIND": {
+   "kind": "Enum",
+   "values": [
+    "AUTOMATIC",
+    "EQUISPACED"
+   ]
+  },
+  "SPARK_INIT": {
+   "kind": "DoubleArray"
+  },
+  "SPARK_REACTION_RATES": {
+   "kind": "DoubleList"
+  },
+  "SPATIAL_FOURIER": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SPECIAL_OUTPUT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SPECIES_CLIPPING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SPECIES_CLIPPING_MAX": {
+   "kind": "DoubleList"
+  },
+  "SPECIES_CLIPPING_MIN": {
+   "kind": "DoubleList"
+  },
+  "SPECIES_INIT": {
+   "kind": "DoubleList"
+  },
+  "SPECIFIC_HEAT_CP": {
+   "kind": "DoubleList"
+  },
+  "SPECIFIED_INLET_PROFILE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SST_OPTIONS": {
+   "kind": "EnumList",
+   "values": [
+    "NONE",
+    "V1994m",
+    "V2003m",
+    "V1994",
+    "V2003",
+    "SUSTAINING",
+    "VORTICITY",
+    "KATO-LAUNDER",
+    "UQ",
+    "COMPRESSIBILITY-WILCOX",
+    "COMPRESSIBILITY-SARKAR",
+    "DIMENSIONLESS_LIMIT"
+   ]
+  },
+  "STAT_RELAX_PARAMETER": {
+   "kind": "Double"
+  },
+  "STOCHASTIC_BACKSCATTER": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "STREAMWISE_PERIODIC_MASSFLOW": {
+   "kind": "Double"
+  },
+  "STREAMWISE_PERIODIC_OUTLET_HEAT": {
+   "kind": "Double"
+  },
+  "STREAMWISE_PERIODIC_PRESSURE_DROP": {
+   "kind": "Double"
+  },
+  "STREAMWISE_PERIODIC_TEMPERATURE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "STRESS_PENALTY_PARAM": {
+   "kind": "DoubleArray"
+  },
+  "SUBSONIC_ENGINE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SUBSONIC_ENGINE_CYL": {
+   "kind": "DoubleArray"
+  },
+  "SUBSONIC_ENGINE_VALUES": {
+   "kind": "DoubleArray"
+  },
+  "SUPERCATALYTIC_WALL": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "SUPERCATALYTIC_WALL_COMPOSITION": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_ADJ_FILENAME": {
+   "kind": "String"
+  },
+  "SURFACE_FILENAME": {
+   "kind": "String"
+  },
+  "SURFACE_MOTION_ORIGIN": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_MOVEMENT": {
+   "kind": "EnumList",
+   "values": [
+    "DEFORMING",
+    "MOVING_WALL",
+    "AEROELASTIC_RIGID_MOTION",
+    "AEROELASTIC",
+    "EXTERNAL",
+    "EXTERNAL_ROTATION"
+   ]
+  },
+  "SURFACE_PITCHING_AMPL": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_PITCHING_OMEGA": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_PITCHING_PHASE": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_PLUNGING_AMPL": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_PLUNGING_OMEGA": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_ROTATION_RATE": {
+   "kind": "DoubleList"
+  },
+  "SURFACE_SENS_FILENAME": {
+   "kind": "String"
+  },
+  "SURFACE_TRANSLATION_RATE": {
+   "kind": "DoubleList"
+  },
+  "SUTHERLAND_CONSTANT": {
+   "kind": "DoubleList"
+  },
+  "SYSTEM_MEASUREMENTS": {
+   "kind": "Enum",
+   "values": [
+    "SI",
+    "US"
+   ]
+  },
+  "TABULAR_FORMAT": {
+   "kind": "Enum",
+   "values": [
+    "CSV",
+    "TECPLOT"
+   ]
+  },
+  "TARGET_CL": {
+   "kind": "Double"
+  },
+  "TEMPERATURE_LIMITS": {
+   "kind": "DoubleArray"
+  },
+  "THERMAL_CONDUCTIVITY_CONSTANT": {
+   "kind": "DoubleList"
+  },
+  "THERMAL_EXPANSION_COEFF": {
+   "kind": "Double"
+  },
+  "THERMODYNAMIC_PRESSURE": {
+   "kind": "Double"
+  },
+  "THETA_INTERIOR_PENALTY_DG_FEM": {
+   "kind": "Double"
+  },
+  "THICKENED_FLAME_CORRECTION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "TIMESTEP_HEAT": {
+   "kind": "Enum",
+   "values": [
+    "LOCAL",
+    "CONVECTIVE",
+    "VISCOUS",
+    "BYFLOW"
+   ]
+  },
+  "TIME_AVG_EXP_CONST": {
+   "kind": "Double"
+  },
+  "TIME_AVG_METHOD": {
+   "kind": "Enum",
+   "values": [
+    "CUMULATIVE",
+    "EXPONENTIAL"
+   ]
+  },
+  "TIME_DISCRE_ADJFLOW": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_ADJTURB": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_FEA": {
+   "kind": "Enum"
+  },
+  "TIME_DISCRE_FEM_FLOW": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_FLOW": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_HEAT": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_RADIATION": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_SPECIES": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DISCRE_TURB": {
+   "kind": "Enum",
+   "values": [
+    "RUNGE-KUTTA_EXPLICIT",
+    "EULER_EXPLICIT",
+    "EULER_IMPLICIT",
+    "CLASSICAL_RK4_EXPLICIT",
+    "ADER_DG"
+   ]
+  },
+  "TIME_DOFS_ADER_DG": {
+   "kind": "UnsignedShort"
+  },
+  "TIME_DOMAIN": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "TIME_INSTANCES": {
+   "kind": "UnsignedShort"
+  },
+  "TIME_INT_STRUCT_COEFFS": {
+   "kind": "DoubleList"
+  },
+  "TIME_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "TIME_MARCHING": {
+   "kind": "Enum",
+   "values": [
+    "NO",
+    "TIME_STEPPING",
+    "DUAL_TIME_STEPPING-1ST_ORDER",
+    "DUAL_TIME_STEPPING-2ND_ORDER",
+    "HARMONIC_BALANCE",
+    "ROTATIONAL_FRAME"
+   ]
+  },
+  "TIME_STEP": {
+   "kind": "Double"
+  },
+  "TOPOLOGY_OPTIMIZATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "TOPOL_OPTIM_FILTER_KERNEL": {
+   "kind": "EnumList",
+   "values": [
+    "CONSTANT",
+    "CONICAL",
+    "GAUSSIAN",
+    "DILATE",
+    "ERODE"
+   ]
+  },
+  "TOPOL_OPTIM_FILTER_RADIUS": {
+   "kind": "DoubleList"
+  },
+  "TOPOL_OPTIM_KERNEL_PARAM": {
+   "kind": "DoubleList"
+  },
+  "TOPOL_OPTIM_OUTFILE": {
+   "kind": "String"
+  },
+  "TOPOL_OPTIM_PROJECTION_PARAM": {
+   "kind": "Double"
+  },
+  "TOPOL_OPTIM_PROJECTION_TYPE": {
+   "kind": "Enum",
+   "values": [
+    "NO_PROJECTION",
+    "HEAVISIDE_UP",
+    "HEAVISIDE_DOWN"
+   ]
+  },
+  "TOPOL_OPTIM_SEARCH_LIMIT": {
+   "kind": "UnsignedShort"
+  },
+  "TOPOL_OPTIM_SIMP_EXPONENT": {
+   "kind": "Double"
+  },
+  "TOPOL_OPTIM_SIMP_MINSTIFF": {
+   "kind": "Double"
+  },
+  "TOTAL_DV_PENALTY": {
+   "kind": "Double"
+  },
+  "TRANSIENT_TERM_REMOVAL_FACTOR": {
+   "kind": "Double"
+  },
+  "TRANSLATION_RATE": {
+   "kind": "DoubleArray"
+  },
+  "TRANSPORT_COEFF_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "SUTHERLAND",
+    "WILKE",
+    "GUPTA-YOS",
+    "CHAPMANN-ENSKOG"
+   ]
+  },
+  "TURBOMACHINERY_KIND": {
+   "kind": "EnumList",
+   "values": [
+    "AXIAL",
+    "CENTRIFUGAL",
+    "CENTRIPETAL",
+    "CENTRIPETAL_AXIAL",
+    "AXIAL_CENTRIFUGAL"
+   ]
+  },
+  "TURBO_PERF_KIND": {
+   "kind": "EnumList",
+   "values": [
+    "TURBINE",
+    "COMPRESSOR",
+    "PROPELLOR"
+   ]
+  },
+  "TURBULENT_CONDUCTIVITY_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "NONE",
+    "CONSTANT_PRANDTL_TURB"
+   ]
+  },
+  "TURBULENT_MIXINGPLANE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "TURB_FIXED_VALUES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "TURB_FIXED_VALUES_DOMAIN": {
+   "kind": "Double"
+  },
+  "UNST_ADJOINT_ITER": {
+   "kind": "Long"
+  },
+  "UNST_CFL_NUMBER": {
+   "kind": "Double"
+  },
+  "UPDATE_AOA_ITER_LIMIT": {
+   "kind": "UnsignedLong"
+  },
+  "UPDATE_BCTHRUST": {
+   "kind": "UnsignedLong"
+  },
+  "UPDATE_IH": {
+   "kind": "UnsignedLong"
+  },
+  "UQ_COMPONENT": {
+   "kind": "UnsignedShort"
+  },
+  "UQ_DELTA_B": {
+   "kind": "Double"
+  },
+  "UQ_PERMUTE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "UQ_URLX": {
+   "kind": "Double"
+  },
+  "USER_SCALAR_NAMES": {
+   "kind": "StringList"
+  },
+  "USER_SOURCE_NAMES": {
+   "kind": "StringList"
+  },
+  "USE_ACCURATE_FLUX_JACOBIANS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "USE_ACCURATE_TURB_JACOBIANS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "USE_AUTOMATIC_RELAXATION_FACTORS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "USE_EXACT_HLLC_JACOBIANS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "USE_LUMPED_MASSMATRIX_DGFEM": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "USE_PINN": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "USE_VECTORIZATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "VALUE_OBJFUNC_FILENAME": {
+   "kind": "String"
+  },
+  "VENKAT_LIMITER_COEFF": {
+   "kind": "Double"
+  },
+  "VISCOSITY_MODEL": {
+   "kind": "Enum",
+   "values": [
+    "CONSTANT_VISCOSITY",
+    "SUTHERLAND",
+    "POLYNOMIAL_VISCOSITY",
+    "FLAMELET",
+    "COOLPROP",
+    "CANTERA"
+   ]
+  },
+  "VISUALIZE_CV": {
+   "kind": "Long"
+  },
+  "VOLUME_ADJ_FILENAME": {
+   "kind": "String"
+  },
+  "VOLUME_FILENAME": {
+   "kind": "String"
+  },
+  "VOLUME_OUTPUT": {
+   "kind": "StringList"
+  },
+  "VOLUME_OUTPUT_PRECISION": {
+   "kind": "Enum",
+   "values": [
+    "SINGLE",
+    "DOUBLE"
+   ]
+  },
+  "VOLUME_SENS_FILENAME": {
+   "kind": "String"
+  },
+  "VORTICITY_CONFINEMENT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "VT_RESIDUAL_LIMITING": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WALLMODEL_B": {
+   "kind": "Double"
+  },
+  "WALLMODEL_KAPPA": {
+   "kind": "Double"
+  },
+  "WALLMODEL_MAXITER": {
+   "kind": "UnsignedShort"
+  },
+  "WALLMODEL_MINYPLUS": {
+   "kind": "Double"
+  },
+  "WALLMODEL_RELFAC": {
+   "kind": "Double"
+  },
+  "WALL_ROUGHNESS": {
+   "kind": "StringDoubleList"
+  },
+  "WEAKLY_COUPLED_HEAT_EQUATION": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WINDOW_CAUCHY_CRIT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WINDOW_FUNCTION": {
+   "kind": "Enum",
+   "values": [
+    "SQUARE",
+    "HANN",
+    "HANN_SQUARE",
+    "BUMP"
+   ]
+  },
+  "WINDOW_START_ITER": {
+   "kind": "UnsignedLong"
+  },
+  "WIND_GUST": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_AD_STATISTICS": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_FORCES_BREAKDOWN": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_PERFORMANCE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_RESTART_AVERAGES": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_RESTART_COMPACT": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_RESTART_OVERWRITE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_SURFACE_OVERWRITE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_VOLUME_OVERWRITE": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_ZONE_CONV": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  },
+  "WRT_ZONE_HIST": {
+   "kind": "Bool",
+   "values": [
+    "YES",
+    "NO"
+   ]
+  }
+ },
+ "in_config_template": [
+  "ABSORPTION_COEFF",
+  "ACENTRIC_FACTOR",
+  "ACTDISK_DOUBLE_SURFACE",
+  "ACTDISK_FILENAME",
+  "ACTDISK_JUMP",
+  "ACTDISK_SECONDARY_FLOW",
+  "ACTDISK_TYPE",
+  "ADER_PREDICTOR",
+  "ADJ_JST_SENSOR_COEFF",
+  "ADJ_LAX_SENSOR_COEFF",
+  "ADJ_SHARP_LIMITER_COEFF",
+  "AEROELASTIC_ITER",
+  "AIRFOIL_MASS_RATIO",
+  "AITKEN_DYN_MAX_INITIAL",
+  "AITKEN_DYN_MIN_INITIAL",
+  "ALIGNED_BYTES_MATMUL",
+  "AOA",
+  "AVERAGE_MACH_LIMIT",
+  "AVERAGE_PROCESS_KIND",
+  "AXISYMMETRIC",
+  "BASIS_GENERATION",
+  "BC_EVAL_FREQ",
+  "BEM_FREQ",
+  "BEM_PROP_BLADE_ANGLE",
+  "BEM_PROP_FILENAME",
+  "BETA_FACTOR",
+  "BGS_RELAXATION",
+  "BODY_FORCE",
+  "BODY_FORCE_VECTOR",
+  "BREAKDOWN_FILENAME",
+  "BUFFET_K",
+  "BUFFET_LAMBDA",
+  "BULK_MODULUS",
+  "CANTERA_COMBUSTION",
+  "CANTERA_CORRECTION_VELOCITY",
+  "CANTERA_DC_MIN_TEMP",
+  "CANTERA_MECHANISM_FILE",
+  "CANTERA_PHASE_NAME",
+  "CANTERA_SOURCE_JACOBIAN",
+  "CANTERA_SPARK_TEMPERATURE",
+  "CANTERA_SPECIES_NAMES",
+  "CANTERA_TRANSPORT_MODEL",
+  "CATALYTIC_EFFICIENCY",
+  "CATALYTIC_WALL",
+  "CENTRAL_INC_JACOBIAN_FIX_FACTOR",
+  "CENTRAL_JACOBIAN_FIX_FACTOR",
+  "CENTRIFUGAL_FORCE",
+  "CFL_ADAPT",
+  "CFL_ADAPT_PARAM",
+  "CFL_NUMBER",
+  "CFL_NUMBER_RAD",
+  "CFL_REDUCTION_ADJFLOW",
+  "CFL_REDUCTION_ADJTURB",
+  "CFL_REDUCTION_SPECIES",
+  "CFL_REDUCTION_TURB",
+  "CG_LOCATION",
+  "CHECK_TAPE_TYPE",
+  "CHECK_TAPE_VARIABLES",
+  "CHT_COUPLING_METHOD",
+  "COMM_LEVEL",
+  "COMPUTE_ENTROPY_FLUID_MODEL",
+  "CONDUCTIVITY_MODEL",
+  "CONFIG_LIST",
+  "CONFINEMENT_PARAM",
+  "CONSERVATIVE_INTERPOLATION",
+  "CONSTANT_LEWIS_NUMBER",
+  "CONTROLLING_VARIABLE_NAMES",
+  "CONTROLLING_VARIABLE_SOURCE_NAMES",
+  "CONVEXITY_CHECK",
+  "CONVEXITY_CHECK_DEPTH",
+  "CONVEXITY_CHECK_ITER",
+  "CONV_CAUCHY_ELEMS",
+  "CONV_CAUCHY_EPS",
+  "CONV_FIELD",
+  "CONV_FILENAME",
+  "CONV_NUM_METHOD_ADJFLOW",
+  "CONV_NUM_METHOD_ADJTURB",
+  "CONV_NUM_METHOD_FLOW",
+  "CONV_NUM_METHOD_HEAT",
+  "CONV_NUM_METHOD_SPECIES",
+  "CONV_NUM_METHOD_TURB",
+  "CONV_RESIDUAL_MINVAL",
+  "CONV_STARTITER",
+  "CONV_WINDOW_CAUCHY_ELEMS",
+  "CONV_WINDOW_CAUCHY_EPS",
+  "CONV_WINDOW_FIELD",
+  "CONV_WINDOW_STARTITER",
+  "CP_POLYCOEFFS",
+  "CRITICAL_DENSITY",
+  "CRITICAL_PRESSURE",
+  "CRITICAL_TEMPERATURE",
+  "CUSTOM_OBJFUNC",
+  "CUSTOM_OUTPUTS",
+  "DAMP_ENGINE_EXHAUST",
+  "DAMP_ENGINE_INFLOW",
+  "DAMP_TIME_FILTERING",
+  "DATADRIVEN_NEWTON_RELAXATION",
+  "DCD_DCL_VALUE",
+  "DCL_DALPHA",
+  "DCMX_DCL_VALUE",
+  "DCMY_DCL_VALUE",
+  "DCMZ_DCL_VALUE",
+  "DEFINITION_DV",
+  "DEFORM_COEFF",
+  "DEFORM_CONSOLE_OUTPUT",
+  "DEFORM_ELASTICITY_MODULUS",
+  "DEFORM_LIMIT",
+  "DEFORM_LINEAR_SOLVER",
+  "DEFORM_LINEAR_SOLVER_ERROR",
+  "DEFORM_LINEAR_SOLVER_ITER",
+  "DEFORM_LINEAR_SOLVER_PREC",
+  "DEFORM_MESH",
+  "DEFORM_NONLINEAR_ITER",
+  "DEFORM_POISSONS_RATIO",
+  "DEFORM_STIFFNESS_TYPE",
+  "DEFORM_STIFF_LAYER_SIZE",
+  "DESIGN_VARIABLE_FEA",
+  "DES_CONST",
+  "DES_CONST_1",
+  "DES_CONST_2",
+  "DE_EFFECTS",
+  "DIFFUSIVITY_CONSTANT",
+  "DIFFUSIVITY_MODEL",
+  "DIRICHLET_SURFACE_BOUNDARY",
+  "DISCADJ_LIN_PREC",
+  "DISCADJ_LIN_SOLVER",
+  "DISCARD_INFILES",
+  "DISTORTION_RACK",
+  "DNETTHRUST_DBCTHRUST",
+  "DRAG_IN_SONICBOOM",
+  "DV_FILENAME",
+  "DV_KIND",
+  "DV_MARKER",
+  "DV_PARAM",
+  "DV_SENSITIVITY_FORMAT",
+  "DV_SENS_FILENAME",
+  "DV_UNORDERED_SENS_FILENAME",
+  "DV_VALUE",
+  "DYNAMIC_LOAD_TRANSFER",
+  "EA_INT_LIMIT",
+  "EA_SCALE_FACTOR",
+  "EDGE_COLORING_GROUP_SIZE",
+  "EDGE_COLORING_RELAX_DISC_ADJ",
+  "ELASTICITY_MODULUS",
+  "ELECTRIC_FIELD_CONST",
+  "ELECTRIC_FIELD_DIR",
+  "ELECTRIC_FIELD_MOD",
+  "ENABLE_CUDA",
+  "ENFORCE_LES",
+  "ENGINE",
+  "ENGINE_EXHAUST_TO_INLET",
+  "ENGINE_HALF_MODEL",
+  "ENGINE_INFLOW_TYPE",
+  "ENGINE_NU_FACTOR",
+  "ENTROPY_FIX_COEFF",
+  "EQUIV_AREA",
+  "EVAL_DOF_DCX",
+  "EXTRA_HEAT_ZONE_OUTPUT",
+  "EXTRA_OUTPUT",
+  "EXT_ITER_OFFSET",
+  "FAN_POLY_EFF",
+  "FEA_ADVANCED_MODE",
+  "FEA_FILENAME",
+  "FEA_ID_DIRECTDIFF",
+  "FFD_AXIS",
+  "FFD_BLENDING",
+  "FFD_BSPLINE_ORDER",
+  "FFD_CONTINUITY",
+  "FFD_COORD_SYSTEM",
+  "FFD_DEFINITION",
+  "FFD_DEGREE",
+  "FFD_FIX_I",
+  "FFD_FIX_J",
+  "FFD_FIX_K",
+  "FFD_INTPREV",
+  "FFD_INTPREV_DEPTH",
+  "FFD_INTPREV_ITER",
+  "FFD_ITERATIONS",
+  "FFD_SYMMETRY_PLANE",
+  "FFD_TOLERANCE",
+  "FILENAMES_INTERPOLATOR",
+  "FILTER_STRESSES",
+  "FIN_DIFF_STEP",
+  "FIXED_CL_MODE",
+  "FIX_AZIMUTHAL_LINE",
+  "FLAME_ENTHALPY_BC",
+  "FLAME_INIT",
+  "FLAME_INIT_IGNITION",
+  "FLAME_INIT_METHOD",
+  "FLUID_MODEL",
+  "FLUID_NAME",
+  "FLUTTER_SPEED_INDEX",
+  "FORMULATION_ELASTICITY_2D",
+  "FREESTREAM_DENSITY",
+  "FREESTREAM_INTERMITTENCY",
+  "FREESTREAM_OPTION",
+  "FREESTREAM_PRESSURE",
+  "FREESTREAM_TEMPERATURE",
+  "FREESTREAM_TEMPERATURE_VE",
+  "FREESTREAM_TURB2LAMVISCRATIO",
+  "FREESTREAM_TURBULENCEINTENSITY",
+  "FREESTREAM_VELOCITY",
+  "FREESTREAM_VISCOSITY",
+  "FROZEN_LIMITER_DISC",
+  "FROZEN_MIXTURE",
+  "FROZEN_VISC_CONT",
+  "FROZEN_VISC_DISC",
+  "GAMMA_VALUE",
+  "GAS_COMPOSITION",
+  "GAS_CONSTANT",
+  "GAS_MODEL",
+  "GEOMETRIC_CONDITIONS",
+  "GEO_BOUNDS",
+  "GEO_DESCRIPTION",
+  "GEO_LOCATION_STATIONS",
+  "GEO_MARKER",
+  "GEO_MODE",
+  "GEO_NACELLE_LOCATION",
+  "GEO_NUMBER_STATIONS",
+  "GEO_PLOT_STATIONS",
+  "GEO_WATERLINE_LOCATION",
+  "GILES_EXTRA_RELAXFACTOR",
+  "GRAD_LINEAR_SOLVER",
+  "GRAD_LINEAR_SOLVER_ERROR",
+  "GRAD_LINEAR_SOLVER_ITER",
+  "GRAD_LINEAR_SOLVER_PREC",
+  "GRAD_OBJFUNC_FILENAME",
+  "GRAVITY_FORCE",
+  "GRID_MOVEMENT",
+  "GUST_AMPL",
+  "GUST_BEGIN_LOC",
+  "GUST_BEGIN_TIME",
+  "GUST_DIR",
+  "GUST_PERIODS",
+  "GUST_TYPE",
+  "GUST_WAVELENGTH",
+  "HB_PERIOD",
+  "HB_PRECONDITION",
+  "HEAT_SOURCE",
+  "HEAT_SOURCE_AXES",
+  "HEAT_SOURCE_CENTER",
+  "HEAT_SOURCE_ROTATION_Z",
+  "HEAT_SOURCE_VAL",
+  "HESS_OBJFUNC_FILENAME",
+  "HIGHLITE_AREA",
+  "HISTORY_OUTPUT",
+  "HISTORY_WRT_FREQ_INNER",
+  "HISTORY_WRT_FREQ_OUTER",
+  "HISTORY_WRT_FREQ_TIME",
+  "HOLD_GRID_FIXED",
+  "HOLD_GRID_FIXED_COORD",
+  "HROUGHNESS",
+  "HYBRID_RANSLES",
+  "INCONSISTENT_DISC",
+  "INCREMENTAL_CRITERIA",
+  "INCREMENTAL_LOAD",
+  "INC_DENSITY_INIT",
+  "INC_DENSITY_MODEL",
+  "INC_DENSITY_REF",
+  "INC_ENERGY_EQUATION",
+  "INC_INLET_DAMPING",
+  "INC_INLET_TYPE",
+  "INC_NONDIM",
+  "INC_OUTLET_DAMPING",
+  "INC_OUTLET_TYPE",
+  "INC_TEMPERATURE_INIT",
+  "INC_TEMPERATURE_REF",
+  "INC_VELOCITY_INIT",
+  "INC_VELOCITY_REF",
+  "INITIAL_BCTHRUST",
+  "INIT_OPTION",
+  "INIT_OPTION_INC",
+  "INLET_FILENAME",
+  "INLET_GAS_COMPOSITION",
+  "INLET_INTERPOLATION_DATA_TYPE",
+  "INLET_INTERPOLATION_FUNCTION",
+  "INLET_MATCHING_TOLERANCE",
+  "INLET_TEMPERATURE_VE",
+  "INLET_TYPE",
+  "INLET_USE_NORMAL",
+  "INNER_ITER",
+  "INTERPOLATION_METHOD",
+  "INV_DESIGN_CP",
+  "INV_DESIGN_HEATFLUX",
+  "IONIZATION",
+  "ITER",
+  "ITER_AVERAGE_OBJ",
+  "ITER_DCL_DALPHA",
+  "JACOBIAN_SPATIAL_DISCRETIZATION_ONLY",
+  "JST_SENSOR_COEFF",
+  "KEEP_DUCROS",
+  "KEEP_DUCROS_THRESHOLD",
+  "KIND_FEM_DG_SHOCK",
+  "KIND_INCOMP_SYSTEM",
+  "KIND_INTERPOLATION",
+  "KIND_MATRIX_COLORING",
+  "KIND_MUSCL_RAMP",
+  "KIND_PB_ITER",
+  "KIND_RADIAL_BASIS_FUNCTION",
+  "KIND_ROUGHSST_MODEL",
+  "KIND_SCALAR_MODEL",
+  "KIND_SGS_MODEL",
+  "KIND_STREAMWISE_PERIODIC",
+  "KIND_TRANS_MODEL",
+  "KIND_TURB_MODEL",
+  "KIND_VERIFICATION_SOLUTION",
+  "KNOWLES_B",
+  "KNOWLES_N",
+  "KT_POLYCOEFFS",
+  "LAX_SENSOR_COEFF",
+  "LD2_COEFF",
+  "LES_FILTER_WIDTH",
+  "LEVELS_TIME_ACCURATE_LTS",
+  "LIBROM_BASE_FILENAME",
+  "LIMITER_ITER",
+  "LIMIT_ADJFLOW",
+  "LINEAR_SOLVER",
+  "LINEAR_SOLVER_ERROR",
+  "LINEAR_SOLVER_ILU_FILL_IN",
+  "LINEAR_SOLVER_ILU_GPU_SWEEPS",
+  "LINEAR_SOLVER_ILU_LEVEL_SCHEDULING",
+  "LINEAR_SOLVER_INNER",
+  "LINEAR_SOLVER_ITER",
+  "LINEAR_SOLVER_PREC",
+  "LINEAR_SOLVER_PREC_THREADS",
+  "LINEAR_SOLVER_RESTART_DEFLATION",
+  "LINEAR_SOLVER_RESTART_FREQUENCY",
+  "LINEAR_SOLVER_SMOOTHER_RELAXATION",
+  "LM_OPTIONS",
+  "LOOKUP_NAMES",
+  "LOWER_LIMIT_K_FACTOR",
+  "LOWER_LIMIT_OMEGA_FACTOR",
+  "LOW_MACH_CORR",
+  "LOW_MACH_PREC",
+  "MACH_MOTION",
+  "MACH_NUMBER",
+  "MARKER_ACTDISK",
+  "MARKER_ACTDISK_BEM_AXIS",
+  "MARKER_ACTDISK_BEM_CG",
+  "MARKER_ANALYZE",
+  "MARKER_ANALYZE_AVERAGE",
+  "MARKER_CHT_INTERFACE",
+  "MARKER_CLAMPED",
+  "MARKER_CREATE_COPY",
+  "MARKER_CUSTOM",
+  "MARKER_DAMPER",
+  "MARKER_DEFORM_MESH",
+  "MARKER_DEFORM_MESH_SYM_PLANE",
+  "MARKER_DESIGNING",
+  "MARKER_DISPLACEMENT",
+  "MARKER_EMISSIVITY",
+  "MARKER_ENGINE_EXHAUST",
+  "MARKER_ENGINE_INFLOW",
+  "MARKER_EULER",
+  "MARKER_FAR",
+  "MARKER_FLUID_INTERFACE",
+  "MARKER_FLUID_LOAD",
+  "MARKER_GILES",
+  "MARKER_HEATFLUX",
+  "MARKER_HEATTRANSFER",
+  "MARKER_INLET",
+  "MARKER_INLET_SPECIES",
+  "MARKER_INLET_TURBULENT",
+  "MARKER_INTERNAL",
+  "MARKER_ISOTHERMAL",
+  "MARKER_LOAD",
+  "MARKER_MIXINGPLANE_INTERFACE",
+  "MARKER_MONITORING",
+  "MARKER_MOVING",
+  "MARKER_NEARFIELD",
+  "MARKER_NORMAL_DISPL",
+  "MARKER_OUTLET",
+  "MARKER_PERIODIC",
+  "MARKER_PLOTTING",
+  "MARKER_PRESSURE",
+  "MARKER_PYTHON_CUSTOM",
+  "MARKER_RIEMANN",
+  "MARKER_SHROUD",
+  "MARKER_SMOLUCHOWSKI_MAXWELL",
+  "MARKER_SOBOLEVBC",
+  "MARKER_SUPERSONIC_INLET",
+  "MARKER_SUPERSONIC_OUTLET",
+  "MARKER_SYM",
+  "MARKER_TURBOMACHINERY",
+  "MARKER_WALL_FUNCTIONS",
+  "MARKER_WALL_SPECIES",
+  "MARKER_ZONE_INTERFACE",
+  "MATERIAL_COMPRESSIBILITY",
+  "MATERIAL_DENSITY",
+  "MATERIAL_MODEL",
+  "MATERIAL_REFERENCE_TEMPERATURE",
+  "MATERIAL_THERMAL_EXPANSION_COEFF",
+  "MATH_PROBLEM",
+  "MAX_BASIS_DIM",
+  "MAX_DELTA_TIME",
+  "MAX_ROE_TURKEL_PREC",
+  "MAX_TIME",
+  "MAX_UPDATE_FLOW",
+  "MAX_UPDATE_SA",
+  "MAX_UPDATE_SST",
+  "MESH_BOX_LENGTH",
+  "MESH_BOX_OFFSET",
+  "MESH_BOX_SIZE",
+  "MESH_FILENAME",
+  "MESH_FORMAT",
+  "MESH_OUT_FILENAME",
+  "MESH_OUT_FORMAT",
+  "MGCYCLE",
+  "MGLEVEL",
+  "MG_ADJFLOW",
+  "MG_CFL_SCALING",
+  "MG_CORRECTION_SMOOTH",
+  "MG_DAMP_PROLONGATION",
+  "MG_DAMP_RESTRICTION",
+  "MG_IMPLICIT_LINES",
+  "MG_MIN_MESHSIZE",
+  "MG_POST_SMOOTH",
+  "MG_PRE_SMOOTH",
+  "MG_SMOOTH_COEFF",
+  "MG_SMOOTH_EARLY_EXIT",
+  "MG_SMOOTH_OUTPUT",
+  "MG_SMOOTH_RES_THRESHOLD",
+  "MG_SMOOTH_STAGNATION_TOL",
+  "MG_STARTUP_CONVERGENCE",
+  "MG_STARTUP_ITER",
+  "MG_STARTUP_STAGNATION",
+  "MG_STARTUP_STAGNATION_ITER",
+  "MIN_ROE_TURKEL_PREC",
+  "MIXEDOUT_COEFF",
+  "MIXINGPLANE_INTERFACE_KIND",
+  "MIXING_VISCOSITY_MODEL",
+  "MOLECULAR_WEIGHT",
+  "MOTION_ORIGIN",
+  "MOVE_MOTION_ORIGIN",
+  "MSW_ALPHA",
+  "MULTIPOINT_AOA",
+  "MULTIPOINT_FREESTREAM_PRESSURE",
+  "MULTIPOINT_FREESTREAM_TEMPERATURE",
+  "MULTIPOINT_MACH_NUMBER",
+  "MULTIPOINT_MESH_FILENAME",
+  "MULTIPOINT_OUTLET_VALUE",
+  "MULTIPOINT_REYNOLDS_NUMBER",
+  "MULTIPOINT_SIDESLIP_ANGLE",
+  "MULTIPOINT_TARGET_CL",
+  "MULTIPOINT_WEIGHT",
+  "MULTIZONE_ADAPT_FILENAME",
+  "MULTIZONE_MESH",
+  "MULTIZONE_RESIDUAL",
+  "MUSCL_ADJFLOW",
+  "MUSCL_ADJTURB",
+  "MUSCL_FLOW",
+  "MUSCL_HEAT",
+  "MUSCL_KAPPA_ADJFLOW",
+  "MUSCL_KAPPA_FLOW",
+  "MUSCL_KAPPA_HEAT",
+  "MUSCL_KAPPA_SPECIES",
+  "MUSCL_KAPPA_TURB",
+  "MUSCL_SPECIES",
+  "MUSCL_TURB",
+  "MU_CONSTANT",
+  "MU_POLYCOEFFS",
+  "MU_REF",
+  "MU_T_REF",
+  "NEWMARK_BETA",
+  "NEWMARK_GAMMA",
+  "NEWTON_KRYLOV",
+  "NEWTON_KRYLOV_DPARAM",
+  "NEWTON_KRYLOV_IPARAM",
+  "NONLINEAR_FEM_SOLUTION_METHOD",
+  "NUMBER_INCREMENTS",
+  "NUM_METHOD_FEM_FLOW",
+  "NUM_METHOD_GRAD",
+  "NUM_METHOD_GRAD_RECON",
+  "NUM_SPANWISE_SECTIONS",
+  "OBJECTIVE_FUNCTION",
+  "OBJECTIVE_WEIGHT",
+  "OMEGA_HB",
+  "OPT_ACCURACY",
+  "OPT_BOUND_LOWER",
+  "OPT_BOUND_UPPER",
+  "OPT_COMBINE_OBJECTIVE",
+  "OPT_CONSTRAINT",
+  "OPT_GRADIENT_FACTOR",
+  "OPT_ITERATIONS",
+  "OPT_LINE_SEARCH_BOUND",
+  "OPT_OBJECTIVE",
+  "OPT_RELAX_FACTOR",
+  "OUTER_ITER",
+  "OUTLIER_MITIGATION_PARAM",
+  "OUTPUT_FILES",
+  "OUTPUT_PRECISION",
+  "OUTPUT_WRT_FREQ",
+  "P1_INITIALIZATION",
+  "PARMETIS_EDGE_WEIGHT",
+  "PARMETIS_POINT_WEIGHT",
+  "PARMETIS_TOLERANCE",
+  "PASTIX_FACTORIZATION_FREQUENCY",
+  "PASTIX_FILL_LEVEL",
+  "PASTIX_VERBOSITY_LEVEL",
+  "PERFORMANCE_AVERAGE_PROCESS_KIND",
+  "PISO_CORRECTIONS",
+  "PITCHING_AMPL",
+  "PITCHING_OMEGA",
+  "PITCHING_PHASE",
+  "PITCH_NATURAL_FREQUENCY",
+  "PLUNGE_NATURAL_FREQUENCY",
+  "PLUNGING_AMPL",
+  "PLUNGING_OMEGA",
+  "POISSON_LINEAR_SOLVER",
+  "POISSON_LINEAR_SOLVER_ERROR",
+  "POISSON_LINEAR_SOLVER_ITER",
+  "POISSON_LINEAR_SOLVER_PREC",
+  "POISSON_RATIO",
+  "PRANDTL_LAM",
+  "PRANDTL_TURB",
+  "PREACC",
+  "PREDICTOR",
+  "PREDICTOR_ORDER",
+  "PREFERENTIAL_DIFFUSION",
+  "PRESTRETCH",
+  "PRESTRETCH_FILENAME",
+  "PRINT_INLET_INTERPOLATED_DATA",
+  "PSEUDO_STATIC",
+  "QUADRATURE_FACTOR_CURVED_FEM",
+  "QUADRATURE_FACTOR_STRAIGHT_FEM",
+  "QUADRATURE_FACTOR_TIME_ADER_DG",
+  "QUASI_NEWTON_NUM_SAMPLES",
+  "RADIAL_BASIS_FUNCTION_PARAMETER",
+  "RADIAL_BASIS_FUNCTION_POLYNOMIAL_TERM",
+  "RADIAL_BASIS_FUNCTION_PRUNE_TOLERANCE",
+  "RADIATION_MODEL",
+  "RADIUS_GYRATION_SQUARED",
+  "RAMP_AND_RELEASE_LOAD",
+  "RAMP_FSI_ITER",
+  "RAMP_LOADING",
+  "RAMP_MOTION_FRAME",
+  "RAMP_MOTION_FRAME_COEFF",
+  "RAMP_MUSCL",
+  "RAMP_MUSCL_COEFF",
+  "RAMP_MUSCL_POWER",
+  "RAMP_OUTLET",
+  "RAMP_OUTLET_COEFF",
+  "RAMP_TIME",
+  "RCM_NUM_SEEDS",
+  "READ_BINARY_RESTART",
+  "REFERENCE_GEOMETRY",
+  "REFERENCE_GEOMETRY_FILENAME",
+  "REFERENCE_GEOMETRY_FORMAT",
+  "REFERENCE_GEOMETRY_PENALTY",
+  "REFERENCE_GEOMETRY_SURFACE",
+  "REFERENCE_NODE",
+  "REFERENCE_NODE_DISPLACEMENT",
+  "REFERENCE_NODE_PENALTY",
+  "REF_AREA",
+  "REF_DIMENSIONALIZATION",
+  "REF_LENGTH",
+  "REF_ORIGIN_MOMENT_X",
+  "REF_ORIGIN_MOMENT_Y",
+  "REF_ORIGIN_MOMENT_Z",
+  "REF_SHARP_EDGES",
+  "REF_VELOCITY",
+  "REF_VISCOSITY",
+  "RELAXATION",
+  "RELAXATION_FACTOR_ADJOINT",
+  "RELAXATION_FACTOR_CHT",
+  "RELAXATION_FACTOR_PRESSURE",
+  "REORIENT_ELEMENTS",
+  "RESTART_ADJ_FILENAME",
+  "RESTART_AVERAGE",
+  "RESTART_AVG_FIELDS",
+  "RESTART_FILENAME",
+  "RESTART_ITER",
+  "RESTART_ITER_AVERAGE",
+  "RESTART_SOL",
+  "RESTART_STEADY_STATE",
+  "REYNOLDS_LENGTH",
+  "REYNOLDS_NUMBER",
+  "RIEMANN_SOLVER_FEM",
+  "RK_ALPHA_COEFF",
+  "ROE_KAPPA",
+  "ROE_LOW_DISSIPATION",
+  "ROM_SAVE_FREQ",
+  "ROTATION_RATE",
+  "SAVE_LIBROM",
+  "SA_DES_NO_DAMPING",
+  "SA_OPTIONS",
+  "SBS_BESSEL_SCALING",
+  "SBS_BOX_BOUNDS",
+  "SBS_DAMP_SOURCE",
+  "SBS_INTENSITY_COEFF",
+  "SBS_IN_BOX",
+  "SBS_KAPPA_4TH",
+  "SBS_LENGTHSCALE_COEFF",
+  "SBS_MAX_ITER_SMOOTH",
+  "SBS_RANS_CONSTRAINT",
+  "SBS_RESTART",
+  "SBS_SOURCE_DIAGNOSTICS",
+  "SBS_SOURCE_TURB",
+  "SBS_SOURCE_TYPE",
+  "SBS_TIMESCALE_COEFF",
+  "SBS_TIMESCALE_CONV_MAX",
+  "SBS_TKE_STRAIN",
+  "SBS_USE_MEAN_TURB",
+  "SCATTERING_COEFF",
+  "SCHMIDT_NUMBER_LAMINAR",
+  "SCHMIDT_NUMBER_TURBULENT",
+  "SCREEN_OUTPUT",
+  "SCREEN_WRT_FREQ_INNER",
+  "SCREEN_WRT_FREQ_OUTER",
+  "SCREEN_WRT_FREQ_TIME",
+  "SEMI_SPAN",
+  "SENS_REMOVE_SHARP",
+  "SENS_SMOOTHING",
+  "SEPARATE_DIMENSIONS",
+  "SIDESLIP_ANGLE",
+  "SINE_LOAD",
+  "SINE_LOAD_COEFF",
+  "SLOPE_LIMITER_ADJFLOW",
+  "SLOPE_LIMITER_ADJTURB",
+  "SLOPE_LIMITER_FLOW",
+  "SLOPE_LIMITER_HEAT",
+  "SLOPE_LIMITER_SPECIES",
+  "SLOPE_LIMITER_TURB",
+  "SMOOTHING_EPSILON1",
+  "SMOOTHING_EPSILON2",
+  "SMOOTH_GRADIENT",
+  "SMOOTH_ON_SURFACE",
+  "SOBOLEV_MODE",
+  "SOLUTION_ADJ_FILENAME",
+  "SOLUTION_FILENAME",
+  "SOLVER",
+  "SPANWISE_KIND",
+  "SPARK_INIT",
+  "SPARK_REACTION_RATES",
+  "SPATIAL_FOURIER",
+  "SPECIAL_OUTPUT",
+  "SPECIES_CLIPPING",
+  "SPECIES_CLIPPING_MAX",
+  "SPECIES_CLIPPING_MIN",
+  "SPECIES_INIT",
+  "SPECIFIC_HEAT_CP",
+  "SPECIFIED_INLET_PROFILE",
+  "SST_OPTIONS",
+  "STAT_RELAX_PARAMETER",
+  "STOCHASTIC_BACKSCATTER",
+  "STREAMWISE_PERIODIC_MASSFLOW",
+  "STREAMWISE_PERIODIC_OUTLET_HEAT",
+  "STREAMWISE_PERIODIC_PRESSURE_DROP",
+  "STREAMWISE_PERIODIC_TEMPERATURE",
+  "STRESS_PENALTY_PARAM",
+  "SUBSONIC_ENGINE",
+  "SUBSONIC_ENGINE_CYL",
+  "SUBSONIC_ENGINE_VALUES",
+  "SUPERCATALYTIC_WALL",
+  "SUPERCATALYTIC_WALL_COMPOSITION",
+  "SURFACE_ADJ_FILENAME",
+  "SURFACE_FILENAME",
+  "SURFACE_MOTION_ORIGIN",
+  "SURFACE_MOVEMENT",
+  "SURFACE_PITCHING_AMPL",
+  "SURFACE_PITCHING_OMEGA",
+  "SURFACE_PITCHING_PHASE",
+  "SURFACE_PLUNGING_AMPL",
+  "SURFACE_PLUNGING_OMEGA",
+  "SURFACE_ROTATION_RATE",
+  "SURFACE_SENS_FILENAME",
+  "SURFACE_TRANSLATION_RATE",
+  "SUTHERLAND_CONSTANT",
+  "SYSTEM_MEASUREMENTS",
+  "TABULAR_FORMAT",
+  "TARGET_CL",
+  "TEMPERATURE_LIMITS",
+  "THERMAL_CONDUCTIVITY_CONSTANT",
+  "THERMAL_EXPANSION_COEFF",
+  "THERMODYNAMIC_PRESSURE",
+  "THETA_INTERIOR_PENALTY_DG_FEM",
+  "THICKENED_FLAME_CORRECTION",
+  "TIME_AVG_EXP_CONST",
+  "TIME_AVG_METHOD",
+  "TIME_DISCRE_ADJFLOW",
+  "TIME_DISCRE_ADJTURB",
+  "TIME_DISCRE_FEA",
+  "TIME_DISCRE_FEM_FLOW",
+  "TIME_DISCRE_FLOW",
+  "TIME_DISCRE_HEAT",
+  "TIME_DISCRE_RADIATION",
+  "TIME_DISCRE_SPECIES",
+  "TIME_DISCRE_TURB",
+  "TIME_DOFS_ADER_DG",
+  "TIME_DOMAIN",
+  "TIME_INSTANCES",
+  "TIME_INT_STRUCT_COEFFS",
+  "TIME_ITER",
+  "TIME_MARCHING",
+  "TIME_STEP",
+  "TOPOLOGY_OPTIMIZATION",
+  "TOPOL_OPTIM_FILTER_KERNEL",
+  "TOPOL_OPTIM_FILTER_RADIUS",
+  "TOPOL_OPTIM_KERNEL_PARAM",
+  "TOPOL_OPTIM_OUTFILE",
+  "TOPOL_OPTIM_PROJECTION_PARAM",
+  "TOPOL_OPTIM_PROJECTION_TYPE",
+  "TOPOL_OPTIM_SEARCH_LIMIT",
+  "TOPOL_OPTIM_SIMP_EXPONENT",
+  "TOPOL_OPTIM_SIMP_MINSTIFF",
+  "TOTAL_DV_PENALTY",
+  "TRANSIENT_TERM_REMOVAL_FACTOR",
+  "TRANSLATION_RATE",
+  "TRANSPORT_COEFF_MODEL",
+  "TURBOMACHINERY_KIND",
+  "TURBO_PERF_KIND",
+  "TURBULENT_CONDUCTIVITY_MODEL",
+  "TURBULENT_MIXINGPLANE",
+  "TURB_FIXED_VALUES",
+  "TURB_FIXED_VALUES_DOMAIN",
+  "UNST_ADJOINT_ITER",
+  "UNST_CFL_NUMBER",
+  "UPDATE_AOA_ITER_LIMIT",
+  "UPDATE_BCTHRUST",
+  "UPDATE_IH",
+  "UQ_COMPONENT",
+  "UQ_DELTA_B",
+  "UQ_PERMUTE",
+  "UQ_URLX",
+  "USER_SCALAR_NAMES",
+  "USER_SOURCE_NAMES",
+  "USE_ACCURATE_FLUX_JACOBIANS",
+  "USE_ACCURATE_TURB_JACOBIANS",
+  "USE_AUTOMATIC_RELAXATION_FACTORS",
+  "USE_EXACT_HLLC_JACOBIANS",
+  "USE_LUMPED_MASSMATRIX_DGFEM",
+  "USE_PINN",
+  "USE_VECTORIZATION",
+  "VALUE_OBJFUNC_FILENAME",
+  "VENKAT_LIMITER_COEFF",
+  "VISCOSITY_MODEL",
+  "VISUALIZE_CV",
+  "VOLUME_ADJ_FILENAME",
+  "VOLUME_FILENAME",
+  "VOLUME_OUTPUT",
+  "VOLUME_OUTPUT_PRECISION",
+  "VOLUME_SENS_FILENAME",
+  "VORTICITY_CONFINEMENT",
+  "VT_RESIDUAL_LIMITING",
+  "WALLMODEL_B",
+  "WALLMODEL_KAPPA",
+  "WALLMODEL_MAXITER",
+  "WALLMODEL_MINYPLUS",
+  "WALLMODEL_RELFAC",
+  "WALL_ROUGHNESS",
+  "WEAKLY_COUPLED_HEAT_EQUATION",
+  "WINDOW_CAUCHY_CRIT",
+  "WINDOW_FUNCTION",
+  "WINDOW_START_ITER",
+  "WIND_GUST",
+  "WRT_AD_STATISTICS",
+  "WRT_FORCES_BREAKDOWN",
+  "WRT_PERFORMANCE",
+  "WRT_RESTART_AVERAGES",
+  "WRT_RESTART_COMPACT",
+  "WRT_RESTART_OVERWRITE",
+  "WRT_SURFACE_OVERWRITE",
+  "WRT_VOLUME_OVERWRITE",
+  "WRT_ZONE_CONV",
+  "WRT_ZONE_HIST"
+ ],
+ "deprecated": {
+  "DATADRIVEN_INITIAL_DENSITY": {
+   "replacement": null,
+   "message": "DATADRIVEN_INITIAL_ENERGY and DATADRIVEN_INITIAL_DENSITY are deprecated, there are no replacements."
+  },
+  "DATADRIVEN_INITIAL_ENERGY": {
+   "replacement": null,
+   "message": "DATADRIVEN_INITIAL_ENERGY and DATADRIVEN_INITIAL_DENSITY are deprecated, there are no replacements."
+  },
+  "DEAD_LOAD": {
+   "replacement": "GRAVITY_FORCE",
+   "message": "DEAD_LOAD is deprecated. Use GRAVITY_FORCE or BODY_FORCE instead."
+  },
+  "DYNAMIC_ANALYSIS": {
+   "replacement": "TIME_DOMAIN",
+   "message": "DYNAMIC_ANALYSIS is deprecated. Use TIME_DOMAIN instead."
+  },
+  "DYN_TIME": {
+   "replacement": "MAX_TIME",
+   "message": "DYN_TIME is deprecated. Use MAX_TIME instead."
+  },
+  "DYN_TIMESTEP": {
+   "replacement": "TIME_STEP",
+   "message": "DYN_TIMESTEP is deprecated. Use TIME_STEP instead."
+  },
+  "INC_INLET_USENORMAL": {
+   "replacement": "INLET_USE_NORMAL",
+   "message": "INC_INLET_USENORMAL is deprecated. Use INLET_USE_NORMAL instead (compatible with all solvers)."
+  },
+  "KIND_TRANS_MODEL": {
+   "replacement": null,
+   "message": ": invalid option name"
+  },
+  "KIND_TURB_MODEL": {
+   "replacement": null,
+   "message": ": invalid option name"
+  },
+  "RAMP_OUTLET_PRESSURE": {
+   "replacement": "RAMP_OUTLET",
+   "message": "RAMP_OUTLET_PRESSURE is deprectaed. Use RAMP_OUTLET instead"
+  },
+  "RAMP_OUTLET_PRESSURE_COEFF": {
+   "replacement": "RAMP_OUTLET_COEFF",
+   "message": "RAMP_OUTLET_PRESSURE_COEFF is deprectaed. Use RAMP_OUTLET_COEFF instead"
+  },
+  "RAMP_ROTATION_FRAME": {
+   "replacement": "RAMP_MOTION_FRAME",
+   "message": "RAMP_ROTATION_FRAME is deprectaed. Use RAMP_MOTION_FRAME instead"
+  },
+  "RAMP_ROTATION_FRAME_COEFF": {
+   "replacement": "RAMP_MOTION_FRAME_COEFF",
+   "message": "RAMP_ROTATION_FRAME_COEFF is deprectaed. Use RAMP_MOTION_FRAME_COEFF instead"
+  },
+  "SINGLEZONE_DRIVER": {
+   "replacement": null,
+   "message": "Option SINGLEZONE_DRIVER is deprecated, it does not have a replacement."
+  },
+  "SPECIES_USE_STRONG_BC": {
+   "replacement": "MARKER_SPECIES_STRONG_BC",
+   "message": "SPECIES_USE_STRONG_BC is deprecated. Use MARKER_SPECIES_STRONG_BC= (marker1, ...) instead."
+  }
+ }
+}

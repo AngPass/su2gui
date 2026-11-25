@@ -34,17 +34,16 @@
         0.0
     ],
     "GAMMA_VALUE": 1.4,
-    "GAS_CONSTANT": 287.058,    "HISTORY_WRT_FREQ_INNER": 1,
+    "GAS_CONSTANT": 287.058,
+    "HISTORY_WRT_FREQ_INNER": 1,
     "INC_DENSITY_INIT": 1.2886,
     "INC_DENSITY_MODEL": "CONSTANT",
     "INC_ENERGY_EQUATION": true,
-    "READ_BINARY_RESTART": false,
     "INC_INLET_DAMPING": 0.1,
     "INC_INLET_TYPE": [
         "VELOCITY_INLET",
         "VELOCITY_INLET"
     ],
-    "INC_INLET_USENORMAL": true,
     "INC_NONDIM": "DIMENSIONAL",
     "INC_OUTLET_DAMPING": 0.1,
     "INC_OUTLET_TYPE": [
@@ -56,6 +55,7 @@
         0.0,
         0.0
     ],
+    "INLET_USE_NORMAL": true,
     "ITER": 1000,
     "KIND_TRANS_MODEL": "NONE",
     "KIND_TURB_MODEL": "SA",
@@ -133,12 +133,12 @@
     "PRANDTL_TURB": 0.9,
     "READ_BINARY_RESTART": false,
     "RESTART_FILENAME": "restart",
-    "RESTART_SOL": true,
+    "RESTART_SOL": false,
     "SA_OPTIONS": "WITHFT2 NEGATIVE EXPERIMENTAL ",
     "SCREEN_OUTPUT": [
         "INNER_ITER",
-        "RMS_DENSITY",
-        "RMS_PRESSURE"
+        "WALL_TIME",
+        "RMS_RES"
     ],
     "SOLUTION_FILENAME": "restart",
     "SOLVER": "INC_RANS",
