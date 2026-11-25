@@ -119,6 +119,9 @@ from ui.initialization import *
 from ui.fileio import *
 # gittree menu : import variables tab                                        #
 from ui.variables import *
+# server-side file browser (files of the machine running SU2GUI)
+from ui.server_files import (register_server_file_target, server_browser_dialog,
+                             server_file_button, set_server_browser_root)
 #############################################################################
 
 
@@ -1753,6 +1756,31 @@ def installer_dialog_card():
 
 
 # -----------------------------------------------------------------------------
+# Server-side file browser: load mesh/config/restart from the filesystem of the
+# machine running SU2GUI (e.g. the cluster) instead of the browser's machine.
+# -----------------------------------------------------------------------------
+def _upload_handler(loader, state_name):
+    """Call the upload loader directly (the file content is not sent to the browser).
+
+    Falls back to setting the state variable of the upload widget if the decorated
+    loader is not callable.
+    """
+    def handler(file_dict):
+        if callable(loader):
+            loader(file_dict)
+        else:
+            state[state_name] = file_dict
+            state.dirty(state_name)
+    return handler
+
+register_server_file_target("mesh", "Load .su2 mesh", [".su2"],
+                            _upload_handler(load_file_su2, "su2_file_upload"))
+register_server_file_target("cfg", "Load .cfg configuration", [".cfg"],
+                            _upload_handler(load_cfg_file, "cfg_file_upload"))
+register_server_file_target("restart", "Load restart / solution file", [".dat", ".csv"],
+                            _upload_handler(uploadRestart, "restartFile"))
+
+# -----------------------------------------------------------------------------
 # Web App setup
 # -----------------------------------------------------------------------------
 
@@ -1848,6 +1876,8 @@ with SinglePageWithDrawerLayout(server) as layout:
             accept=".su2",
             __properties=["accept"],
         )
+        # load the mesh from the server filesystem (e.g. the cluster)
+        server_file_button("mesh", "Load .su2 mesh from the server")
 
         # input .cfg file
         vuetify.VFileInput(
@@ -1867,6 +1897,8 @@ with SinglePageWithDrawerLayout(server) as layout:
             accept=".cfg",
             __properties=["accept"],
         )
+        # load the configuration from the server filesystem
+        server_file_button("cfg", "Load .cfg file from the server")
 
 
         # progress inside the toolbar
@@ -1950,6 +1982,8 @@ with SinglePageWithDrawerLayout(server) as layout:
         solver_dialog_card_convergence()
         # history plot: line visibility dialog
         dialog_card()
+        # file browser for the server filesystem
+        server_browser_dialog()
         # set all physics states from the json file
         # this is reading the config file (done by read_json_data) and filling it into the GUI menu's
         set_json_physics()
@@ -2170,6 +2204,8 @@ def main():
     parser.add_argument('--clear-data', action='store_true', help='Clear all application data including saved configurations and cases.')
     parser.add_argument('-v', '--version', action='store_true', help='Print the version of SU2GUI and exit.')
     parser.add_argument('--install', action='store_true', help='Show installer on startup')
+    parser.add_argument('--browse-root', type=str, default=None,
+                        help='Restrict the server file browser to this directory (default: no restriction, starts in the home directory).')
 
 
     args, unknown_args = parser.parse_known_args()
@@ -2199,6 +2235,12 @@ def main():
 
     if args.install:
         state.installer_dialog_visible = True
+
+    if args.browse_root:
+        if os.path.isdir(os.path.expanduser(args.browse_root)):
+            set_server_browser_root(args.browse_root)
+        else:
+            log("error", f"--browse-root {args.browse_root} is not a directory, browsing is not restricted.")
 
     if case:
         case_args(case)

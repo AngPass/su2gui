@@ -9,6 +9,7 @@ if parent_dir not in sys.path:
 
 from ui.uicard import ui_card, ui_subcard, server
 from trame.widgets import vuetify
+from ui.server_files import server_file_button
 from core.su2_json import *
 
 
@@ -897,6 +898,9 @@ def initialization_file_subcard():
             accept=".dat, .csv",
             __properties=["accept"],
           )
+        with vuetify.VCol(cols="4", classes="py-1 my-1"):
+          # load the restart file from the server filesystem (e.g. the cluster)
+          server_file_button("restart", "Load restart file from the server")
 
 
 ###############################################################
