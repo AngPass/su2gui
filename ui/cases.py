@@ -20,6 +20,7 @@ from ui.numerics import set_json_numerics
 from ui.physics import set_json_physics
 from core.su2_io import save_json_cfg_file, save_su2mesh
 from core.su2_json import updateBCDictListfromJSON
+from core import su2_files
 from ui.uicard import server
 from ui.mesh import root, mesh_actor, mesh_mapper
 from ui.vtk_helper import renderer
@@ -359,63 +360,33 @@ def load_case(case_name):
                 "content": content,
                 "type": "text/plain",
             }
-
-            for line in content.splitlines():
-                if 'RESTART_FILENAME' in line:
-                    _, value = line.split('=', 1)
-                    state.restart_filename = value.strip()
-                    break
+            # process the config upload now, so that state.jsonData is the loaded configuration
+            state.dirty('cfg_file_upload')
+            state.flush()
 
             log("info", f"Config file {state.cfg_file_upload['name']} loaded successfully.")
 
-            # load the restart file
-            log('info', f"Restart file name = {state.restart_filename}")
-            if state.restart_filename == None or state.restart=='':
-                state.restart_filename = 'restart'
-                log("info", f"Restart file not found in the config file.")
-                return
+            # restart file written by SU2 for this configuration: RESTART_FILENAME with the
+            # extension implied by OUTPUT_FILES (.dat binary, .csv for RESTART_ASCII) and,
+            # for unsteady runs, the _<iter> suffix of the last time step
+            state.restart_filename = state.jsonData.get('RESTART_FILENAME', 'restart') or 'restart'
+            restart_path = su2_files.latest_restart_path(root, state.jsonData)
+            log('info', f"Restart file = {restart_path}")
 
-            # got the restart file name, now try to load the restart file
-            restart_path = os.path.join(root, state.restart_filename)
-
-            # check if the restart file exists
             if not os.path.isfile(restart_path):
-                # try to add extension to the file if not found
-                if not (restart_path.endswith(".dat") or restart_path.endswith(".csv")):
-                    if 'OUTPUT_FILES' in state.jsonData and 'RESTART_ASCII' in state.jsonData['OUTPUT_FILES']:
-                        restart_path += ".csv"
-                    else:
-                        restart_path += ".dat"
+                log("info", f"Restart file '{restart_path}' not found in the case.")
+                break
 
-                # check if the restart file exists
-                if not os.path.isfile(restart_path):
-                    # check if restart file is lock file, and rename it to restart file
-                    if os.path.isfile(restart_path + ".lock"):
-                        os.rename(restart_path + ".lock", restart_path)
-                    else:
-                        log("info", f"Restart file '{restart_path}' not found in the case.")
-                        return
+            with open(restart_path, 'rb') as f:
+                content = f.read()
+            state.restartFile = {
+                "name": os.path.basename(restart_path),
+                "size" : os.stat(restart_path).st_size,
+                "content": content,
+                "type": "application/octet-stream",
+            }
 
-            if restart_path.endswith(".dat"):
-                with open(restart_path, 'rb') as f:
-                    content = f.read()
-                    state.restartFile = {
-                        "name": os.path.basename(restart_path),
-                        "size" : os.stat(restart_path).st_size,
-                        "content": content,
-                        "type": "text/plain",
-                    }
-            else:
-                with open(restart_path, 'r') as f:
-                    content = f.read()
-                    state.restartFile = {
-                        "name": os.path.basename(restart_path),
-                        "size" : os.stat(restart_path).st_size,
-                        "content": content,
-                        "type": "text/plain",
-                    }
-
-            log("info", f"Restart file '{state.restart_filename}' loaded successfully.")
+            log("info", f"Restart file '{restart_path.name}' loaded successfully.")
 
             break
 
@@ -461,8 +432,8 @@ def download_outputs():
             if list[0]:
                 file_path = os.path.join(files_directory, filename)
                 if os.path.isfile(file_path):
-                    with open(file_path, 'r') as f:
-                        zip_ref.writestr(zinfo_or_arcname=list[1], data=f.read())
+                    # binary copy: restart (.dat) and VTK outputs are binary files
+                    zip_ref.write(file_path, arcname=list[1])
                 else:
                     log("Warn", f"{file_path} does not exist and will not be included in the zip file.")
 

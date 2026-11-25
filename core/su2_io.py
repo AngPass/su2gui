@@ -81,7 +81,7 @@ def createjsonMarkers():
 
   # loop over the boundaries and construct the markers
   for bcdict in state.BCDictList:
-    log("info", f"bcdict =  = {bcdict}")
+    log("debug", f"bcdict =  = {bcdict}")
     # ##### WALL BOUNDARY CONDITIONS #####
     if bcdict['bc_subtype']=="Temperature":
         marker = [bcdict['bcName'], bcdict['bc_temperature']]
@@ -98,9 +98,9 @@ def createjsonMarkers():
         marker_heattransfer.append( marker )
         marker_wall_functions.append( [bcdict['bcName'], "STANDARD_WALL_FUNCTION"] )
     elif bcdict['bc_subtype']=="Euler":
+        # inviscid (slip) wall: no wall function, MARKER_WALL_FUNCTIONS is for viscous walls only
         marker = [bcdict['bcName']]
         marker_euler.append(marker)
-        marker_wall_functions.append( [bcdict['bcName'], "STANDARD_WALL_FUNCTION"] )
     # ##### OUTLET BOUNDARY CONDITIONS #####
     elif bcdict['bc_subtype']=="Target mass flow rate":
         marker = [bcdict['bcName'], bcdict['bc_massflow']]
@@ -159,6 +159,9 @@ def createjsonMarkers():
   # ##### WALL FUNCTIONS #####
   if state.wall_function:
     state.jsonData['MARKER_WALL_FUNCTIONS']=marker_wall_functions
+  else:
+    # do not keep wall functions of a previous setting
+    state.jsonData.pop('MARKER_WALL_FUNCTIONS', None)
 
   # ##### OUTLET #####
   state.jsonData['MARKER_OUTLET']=marker_outlet
@@ -169,28 +172,35 @@ def createjsonMarkers():
 
   state.jsonData['MARKER_INLET']=marker_inlet
   state.jsonData['INC_INLET_TYPE']=marker_inc_inlet_type
-  state.jsonData['INLET_TYPE']=marker_inlet_type
+  # INLET_TYPE (compressible) is a single enum in SU2 (addEnumOption): one type for all
+  # inlet markers, unlike INC_INLET_TYPE which is a list with one entry per marker.
+  if marker_inlet_type:
+    if len(set(marker_inlet_type)) > 1:
+      log("error", f"SU2 supports a single INLET_TYPE for all compressible inlets, found {sorted(set(marker_inlet_type))}. "
+                   f"Using {marker_inlet_type[0]} for all inlets.")
+    state.jsonData['INLET_TYPE']=marker_inlet_type[0]
+  else:
+    state.jsonData.pop('INLET_TYPE', None)
 
   # ##### SUPERSONIC #####
   state.jsonData['MARKER_SUPERSONIC_INLET']=marker_supersonic_inlet
   state.jsonData['MARKER_SUPERSONIC_OUTLET']=marker_supersonic_outlet
 
-  log("info", f"marker_isothermal= = {state.jsonData['MARKER_ISOTHERMAL']}")
-  log("info", f"marker_heatflux= = {state.jsonData['MARKER_HEATFLUX']}")
-  log("info", f"marker_heattransfer= = {state.jsonData['MARKER_HEATTRANSFER']}")
-  log("info", f"marker_outlet= = {state.jsonData['MARKER_OUTLET']}")
-  log("info", f"marker_inc_outlet_type= = {state.jsonData['INC_OUTLET_TYPE']}")
-  log("info", f"marker_symmetry= = {state.jsonData['MARKER_SYM']}")
-  log("info", f"marker_far= = {state.jsonData['MARKER_FAR']}")
-  log("info", f"marker_inlet= = {state.jsonData['MARKER_INLET']}")
-  log("info", f"marker_inc_inlet_type= = {state.jsonData['INC_INLET_TYPE']}")
-  log("info", f"marker_supersonic_inlet= = {state.jsonData['MARKER_SUPERSONIC_INLET']}")
-  log("info", f"marker_supersonic_outlet= = {state.jsonData['MARKER_SUPERSONIC_OUTLET']}")
+  log("debug", f"marker_isothermal= = {state.jsonData['MARKER_ISOTHERMAL']}")
+  log("debug", f"marker_heatflux= = {state.jsonData['MARKER_HEATFLUX']}")
+  log("debug", f"marker_heattransfer= = {state.jsonData['MARKER_HEATTRANSFER']}")
+  log("debug", f"marker_outlet= = {state.jsonData['MARKER_OUTLET']}")
+  log("debug", f"marker_inc_outlet_type= = {state.jsonData['INC_OUTLET_TYPE']}")
+  log("debug", f"marker_symmetry= = {state.jsonData['MARKER_SYM']}")
+  log("debug", f"marker_far= = {state.jsonData['MARKER_FAR']}")
+  log("debug", f"marker_inlet= = {state.jsonData['MARKER_INLET']}")
+  log("debug", f"marker_inc_inlet_type= = {state.jsonData['INC_INLET_TYPE']}")
+  log("debug", f"marker_supersonic_inlet= = {state.jsonData['MARKER_SUPERSONIC_INLET']}")
+  log("debug", f"marker_supersonic_outlet= = {state.jsonData['MARKER_SUPERSONIC_OUTLET']}")
 
-  log("info", state.jsonData)
   # all empty markers will be removed for writing
   myDict = {key:val for key, val in state.jsonData.items() if val != []}
-  log("info", myDict)
+  log("debug", myDict)
   state.jsonData = myDict
 
 ########################################################################################
@@ -266,128 +276,79 @@ def save_json_cfg_file(filename_json_export,filename_cfg_export):
 
 ########################################################################################
 # ##### export internal vtk multiblock mesh to an su2 file
-# ##### exports single block .su2 mesh with boundary conditions only
+# ##### exports single zone .su2 mesh with boundary conditions only
 ########################################################################################
+def _cell_connectivity(dataset, cell_id, id_list):
+    """Point ids of a cell, as a space separated string."""
+    dataset.GetCellPoints(cell_id, id_list)
+    return " ".join(str(id_list.GetId(j)) for j in range(id_list.GetNumberOfIds()))
+
+
 def save_su2mesh(multiblock,su2_export_filename):
-    log("info", type(multiblock))
-    # export an su2 file
-    # first, get the dimensions. If the z-dimension is smaller than 1e-6, we assume 2D
+    """Write the mesh as a single-zone native SU2 ASCII mesh (.su2).
 
-    # Set some initial values
-    #MARKER_TAG = "1"
-    #MARKER_ELEMS = 1
+    Layout read by SU2 (CSU2ASCIIMeshReaderFVM):
+      NDIME= n
+      NELEM= n, then one line per element: <VTK cell type> <point ids> <element index>
+      NPOIN= n, then one line per point: <x> <y> [<z>] <point index>
+      NMARK= n, then per marker MARKER_TAG= name, MARKER_ELEMS= n and
+      one line per boundary element: <VTK cell type> <point ids>
+    SU2 uses the VTK cell type identifiers. The boundary grids share the point set
+    of the interior grid, so their point ids are global.
+    """
+    internalBlock = multiblock.GetBlock(0) if multiblock is not None else None
+    if internalBlock is None or internalBlock.GetNumberOfBlocks() == 0:
+        log("info", "no internal block, mesh not saved")
+        return
 
-    log("info", "saving su2 mesh file")
-    #global mb1
-    #log("info", type(mb1))
-    #log("info", dir(mb1))
-    #log("info", f"nr of blocks inside block =  = {mb1.GetNumberOfBlocks(}"))
+    if internalBlock.GetNumberOfBlocks() > 1:
+        # a .su2 file with several zones needs NZONE/IZONE sections and per-zone numbering
+        log("error", f"The mesh has {internalBlock.GetNumberOfBlocks()} interior blocks: "
+                     "only single-zone .su2 meshes can be exported, mesh not saved")
+        return
 
-    internalBlock = multiblock.GetBlock(0)
-    if (internalBlock==None):
-        log("info", "no internal block, exiting")
+    data = internalBlock.GetBlock(0)
+    if data is None or data.GetNumberOfPoints() == 0:
+        log("info", "internal block is empty, mesh not saved")
         return
 
     boundaryBlock = multiblock.GetBlock(1)
-    #log("info", f"nr of blocks inside internal block =  = {internalBlock.GetNumberOfBlocks(}"))
-    #log("info", f"nr of blocks inside block =  = {boundaryBlock.GetNumberOfBlocks(}"))
 
-    log("info", dir(internalBlock))
-    # nr of data in internal block
-    NELEM = internalBlock.GetNumberOfCells()
-    NPOINT = internalBlock.GetNumberOfPoints()
-    BOUND=[0,0,0,0,0,0]
-    internalBlock.GetBounds(BOUND)
-    dz = BOUND[5] - BOUND[2]
-    log("info", f"dz = {dz}")
-    NDIME= state.nDim
-    # if (dz<1e-12):
-    #     log("info", "case is 2D")
-    #     NDIME= 2
-    # else:
-    #     log("info", "dz > 0, case is 3D")
-    #     NDIME= 3
+    NDIME = int(state.nDim)
+    NELEM = data.GetNumberOfCells()
+    NPOINT = data.GetNumberOfPoints()
+    ids = vtk.vtkIdList()
 
-    pts = vtk.vtkIdList()
-    for i in range(internalBlock.GetNumberOfBlocks()):
-        #log("info", f"number of internal elements =  = {i+1," / ", internalBlock.GetNumberOfBlocks(}") )
-        data = internalBlock.GetBlock(i)
-        celldata = data.GetCells()
-        #log("info", f"data type= = {type(data}"))
-        #log("info", f"data type= = {dir(data}"))
-        #log("info", f"celldata type= = {type(celldata}"))
-        #log("info", f"celldata type= = {dir(celldata}"))
+    log("info", f"saving su2 mesh file {su2_export_filename}: {NDIME}D, {NELEM} elements, {NPOINT} points")
 
-        for i in range(NELEM):
-            #log("info", i," ",celldata.GetCellSize(i))
-            celldata.GetCellAtId(i,pts)
-            #log("info", f"number of ids =  = {pts.GetNumberOfIds(}"))
-            #log("info", f"cell type = = {data.GetCellType(i}"))
-            #for j in range(pts.GetNumberOfIds()):
-            #    log("info", pts.GetId(j))
+    out = [f"NDIME= {NDIME}", f"NELEM= {NELEM}"]
 
+    # element connectivity
+    for i in range(NELEM):
+        out.append(f"{data.GetCellType(i)} {_cell_connectivity(data, i, ids)} {i}")
 
-    for i in range(internalBlock.GetNumberOfBlocks()):
-        #log("info", f"number of internal elements =  = {i+1," / ", internalBlock.GetNumberOfBlocks(}") )
-        data = internalBlock.GetBlock(i)
-        #for p in range(NPOINT):
-        #    log("info", p," ",data.GetPoint(p))
+    # point coordinates (full precision)
+    out.append(f"NPOIN= {NPOINT}")
+    for i in range(NPOINT):
+        p = data.GetPoint(i)
+        coords = p[:3] if NDIME == 3 else p[:2]
+        out.append(" ".join(f"{c:.17g}" for c in coords) + f" {i}")
 
+    # boundary markers
+    NMARK = boundaryBlock.GetNumberOfBlocks() if boundaryBlock is not None else 0
+    out.append(f"NMARK= {NMARK}")
+    for m in range(NMARK):
+        marker = boundaryBlock.GetBlock(m)
+        name = boundaryBlock.GetMetaData(m).Get(vtk.vtkCompositeDataSet.NAME())
+        ncells = marker.GetNumberOfCells() if marker is not None else 0
+        out.append(f"MARKER_TAG= {name}")
+        out.append(f"MARKER_ELEMS= {ncells}")
+        for i in range(ncells):
+            out.append(f"{marker.GetCellType(i)} {_cell_connectivity(marker, i, ids)}")
 
-    with open(BASE / "user" /  state.case_name /su2_export_filename, 'w') as f:
-      # write dimensions
-      s = "NDIME= " + str(NDIME) + "\n"
-      f.write(s)
-      # write element connectivity
-      s = "NELEM= " + str(NELEM) + "\n"
-      f.write(s)
-
-      # write element connectivity
-      for i in range(NELEM):
-        s = str(data.GetCellType(i)) + " "
-        #log("info", i," ",celldata.GetCellSize(i))
-        celldata.GetCellAtId(i,pts)
-        #log("info", f"number of ids =  = {pts.GetNumberOfIds(}"))
-        for j in range(pts.GetNumberOfIds()):
-            #log("info", pts.GetId(j))
-            s += str(pts.GetId(j)) + " "
-        s += str(i) + "\n"
-        f.write(s)
-
-      # write point coordinates
-      s = "NPOIN= " + str(NPOINT) + "\n"
-      f.write(s)
-      for i in range(NPOINT):
-          p = data.GetPoint(i)
-          if (NDIME==3):
-            s = str(p[0]) + " " + str(p[1]) + " " + str(p[2]) + " " + str(i) + "\n"
-          else:
-            s = str(p[0]) + " " + str(p[1]) + " " + str(i) + "\n"
-          f.write(s)
-      # write markers
-      NMARK = boundaryBlock.GetNumberOfBlocks()
-      s = "NMARK= " + str(NMARK) + "\n"
-      f.write(s)
-      for i in range(NMARK):
-        #log("info", f"i =  = {i} {NMARK}")
-        data = boundaryBlock.GetBlock(i)
-        celldata = data.GetCells()
-        name = boundaryBlock.GetMetaData(i).Get(vtk.vtkCompositeDataSet.NAME())
-        s = "MARKER_TAG= " + str(name) + "\n"
-        f.write(s)
-        #log("info", f"metadata block name =  = {name}")
-        #log("info", type(data))
-        NCELLS = data.GetNumberOfCells()
-        #log("info", f"Npoints =  = {data.GetNumberOfPoints(}"))
-        s = "MARKER_ELEMS= " + str(NCELLS) + "\n"
-        f.write(s)
-        for i in range(NCELLS):
-            s = str(data.GetCellType(i)) + " "
-            celldata.GetCellAtId(i,pts)
-            for j in range(pts.GetNumberOfIds()):
-              s += str(pts.GetId(j)) + " "
-            s += "\n"
-            f.write(s)
+    with open(BASE / "user" / state.case_name / su2_export_filename, 'w') as f:
+        f.write("\n".join(out))
+        f.write("\n")
 
 ########################################################################################
 # Convert config file to JSON and validate with schema using predefined functions

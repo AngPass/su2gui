@@ -27,6 +27,7 @@ if parent_dir not in sys.path:
 from ui.uicard import ui_card, ui_subcard, server
 from trame.widgets import vuetify
 from core.su2_json import *
+from core import su2_files
 
 state, ctrl = server.state, server.controller
 
@@ -48,22 +49,27 @@ state, ctrl = server.state, server.controller
 # ### READ CONFIG FILE ### #
 # set the state variables using the json data from the config file
 def set_json_fileio():
+  # OUTPUT_WRT_FREQ has one entry per OUTPUT_FILES entry (SU2 repeats the last one
+  # and uses 250/1 when unset), so the frequencies are looked up by file type.
+  restart_freq = su2_files.restart_output_frequency(state.jsonData)
+  volume_freq = su2_files.output_frequency(state.jsonData, _volume_kinds())
+
   try:
     state.restart_filename = state.jsonData['RESTART_FILENAME']
-    # if state.restart_filename.endswith(".dat") or state.restart_filename.endswith(".csv"):
-    #    state.restart_filename = state.restart_filename[:-4]
-    state.fileio_restart_frequency = state.jsonData['OUTPUT_WRT_FREQ'][0]
-    state.fileio_restart_binary = bool('OUTPUT_FILES' in state.jsonData and not "RESTART_ASCII" in  state.jsonData['OUTPUT_FILES'])
-    state.fileio_restart_overwrite = bool(state.jsonData['WRT_RESTART_OVERWRITE'])
   except KeyError as e:
     log("warn", f"Key '{e.args[0]}' not found in state.jsonData")
-    
+  if restart_freq is not None:
+    state.fileio_restart_frequency = restart_freq
+  state.fileio_restart_binary = not su2_files.restart_is_ascii(state.jsonData)
+  state.fileio_restart_overwrite = su2_files.as_bool(state.jsonData.get('WRT_RESTART_OVERWRITE'), True)
+
   try:
     state.fileio_volume_name = state.jsonData['VOLUME_FILENAME']
-    state.fileio_volume_frequency = state.jsonData['OUTPUT_WRT_FREQ'][1]
-    state.fileio_volume_overwrite = bool(state.jsonData['WRT_VOLUME_OVERWRITE'])
   except KeyError as e:
     log("warn", f"Key '{e.args[0]}' not found in state.jsonData")
+  if volume_freq is not None:
+    state.fileio_volume_frequency = volume_freq
+  state.fileio_volume_overwrite = su2_files.as_bool(state.jsonData.get('WRT_VOLUME_OVERWRITE'), True)
     
   try:
     state.fileio_history_name = state.jsonData['CONV_FILENAME']
@@ -197,45 +203,52 @@ def update_material(restart_filename, **kwargs):
     state.dirty('fileio_restart_binary')
     state.dirty('jsonData')
 
-# note that we currently support exactly 2 entries in OUTPUT_FILES, restart and paraview
+_RESTART_KINDS = ("RESTART", "RESTART_ASCII")
+
+def _volume_kinds():
+    """OUTPUT_FILES entries that are not restart files (volume/surface visualization files)."""
+    return tuple(f for f in su2_files.output_files(state.jsonData) if f not in _RESTART_KINDS)
+
+# OUTPUT_WRT_FREQ is index-aligned with OUTPUT_FILES (one frequency per file type)
 @state.change("fileio_restart_frequency")
 def update_material(fileio_restart_frequency, **kwargs):
-    if 'OUTPUT_WRT_FREQ' not in state.jsonData:
-       state.jsonData['OUTPUT_WRT_FREQ'] = [100, 100]
     try:
-      state.jsonData['OUTPUT_WRT_FREQ'][0]= int(fileio_restart_frequency)
+      su2_files.set_output_frequency(state.jsonData, _RESTART_KINDS, int(fileio_restart_frequency))
       state.dirty('jsonData')
-    except Exception as e:
-      log("error", f"An error occurred in FileIO Tab: \n {str(e)}")
+    except (TypeError, ValueError) as e:
+      log("error", f"Invalid restart output frequency in FileIO Tab: {e}")
 
 # if binary, change the file type
 @state.change("fileio_restart_binary")
 def update_material(fileio_restart_binary, **kwargs):
-    if 'OUTPUT_FILES' not in state.jsonData:
-       state.jsonData['OUTPUT_FILES'] = ['PARAVIEW', 'SURFACE_PARAVIEW']
+    # expand OUTPUT_FILES / OUTPUT_WRT_FREQ first, so that replacing or appending
+    # the restart entry keeps the frequencies aligned with the files
+    files = su2_files.output_files(state.jsonData)
+    freqs = su2_files.volume_output_frequencies(state.jsonData)
+    wanted, other = ("RESTART", "RESTART_ASCII") if bool(fileio_restart_binary) else ("RESTART_ASCII", "RESTART")
 
-    if bool(fileio_restart_binary)==True:
-      # change extension to .dat
-      state.restart_filename = state.restart_filename.split('.',1)[0]+".dat"
+    # SU2 appends the extension itself (and trims it if present)
+    base = su2_files.restart_basename({'RESTART_FILENAME': state.restart_filename or 'restart'})
+    state.restart_filename = base + (".dat" if wanted == "RESTART" else ".csv")
 
-      # changes in config file
-      try:
-        restart_index = state.jsonData['OUTPUT_FILES'].index("RESTART_ASCII")
-        state.jsonData['OUTPUT_FILES'][restart_index]= "RESTART"
-      except:
-          if "RESTART" not in state.jsonData['OUTPUT_FILES']:
-            state.jsonData['OUTPUT_FILES'] += ["RESTART"]
-    else:
-      # change extension to .csv
-      state.restart_filename = state.restart_filename.split('.',1)[0]+".csv"
-
-      # changes is config file
-      try:
-        restart_index = state.jsonData['OUTPUT_FILES'].index("RESTART")
-        state.jsonData['OUTPUT_FILES'][restart_index]= "RESTART_ASCII"
-      except:
-         if "RESTART_ASCII" not in state.jsonData['OUTPUT_FILES']:
-          state.jsonData['OUTPUT_FILES'] += ["RESTART_ASCII"]
+    if other in files:
+      idx = files.index(other)
+      files[idx] = wanted
+    elif wanted not in files:
+      files.append(wanted)
+      freqs.append(freqs[-1] if freqs else su2_files.DEFAULT_WRT_FREQ_STEADY)
+    # remove duplicates of the restart entry, keeping the frequencies aligned
+    seen = set()
+    new_files, new_freqs = [], []
+    for f, fr in zip(files, freqs):
+      if f in _RESTART_KINDS:
+        if f != wanted or f in seen:
+          continue
+        seen.add(f)
+      new_files.append(f)
+      new_freqs.append(fr)
+    state.jsonData['OUTPUT_FILES'] = new_files
+    state.jsonData['OUTPUT_WRT_FREQ'] = new_freqs
     state.dirty('jsonData')
 
 @state.change("fileio_restart_overwrite")
@@ -255,10 +268,10 @@ def update_material(fileio_volume_name, **kwargs):
 @state.change("fileio_volume_frequency")
 def update_material(fileio_volume_frequency, **kwargs):
     try:
-        state.jsonData['OUTPUT_WRT_FREQ'][1]= int(fileio_volume_frequency)
+        su2_files.set_output_frequency(state.jsonData, _volume_kinds(), int(fileio_volume_frequency))
         state.dirty('jsonData')
-    except Exception as e:
-      log("error", f"An error occurred in FileIO Tab: \n {str(e)}")
+    except (TypeError, ValueError) as e:
+      log("error", f"Invalid volume output frequency in FileIO Tab: {e}")
 
 @state.change("fileio_volume_overwrite")
 def update_material(fileio_volume_overwrite, **kwargs):

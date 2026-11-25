@@ -175,7 +175,8 @@ def generate_dynamic_temperature_wrapper(
         output_dir: str | Path | None = None,
         variables: Dict[str, Any] | None = None,
         temperature_formula: str | None = None,
-        wrapper_type: str = "simple"  # Force simple position-based only
+        wrapper_type: str = "simple",  # Force simple position-based only
+        config_filename: str = "config.cfg"
 ) -> Path:
     # Force position-based mode only
     wrapper_type = "simple"
@@ -228,12 +229,12 @@ def generate_dynamic_temperature_wrapper(
         f.write("def main():\n")
         f.write("  comm = MPI.COMM_WORLD\n\n")
         f.write("  try:\n")
-        f.write("    SU2Driver = pysu2.CSinglezoneDriver('turb_SA_flatplate (1).cfg', 1, comm)\n")
+        f.write(f"    SU2Driver = pysu2.CSinglezoneDriver({str(config_filename)!r}, 1, comm)\n")
         f.write("  except TypeError as exception:\n")
         f.write("    print('A TypeError occured in pysu2.CDriver : ', exception)\n")
         f.write("    raise\n\n")
         f.write("  AllMarkerIDs = SU2Driver.GetMarkerIndices()\n")
-        f.write(f"  MarkerName = '{boundary_marker}'\n")
+        f.write(f"  MarkerName = {str(boundary_marker)!r}\n")
         f.write("  MarkerID = AllMarkerIDs[MarkerName] if MarkerName in AllMarkerIDs else -1\n\n")
         f.write("  nVertex = SU2Driver.GetNumberMarkerNodes(MarkerID) if MarkerID >= 0 else 0\n\n")
         f.write("  if nVertex > 0:\n")
@@ -265,10 +266,13 @@ def generate_dynamic_temperature_wrapper(
         
         f.write("      x_norm = (x - x_min) / x_range if x_range > 0 else 0.0\n")
         
-        f.write(f"      # User expression with x,y,z available\n")
-        f.write(f"      code = compile('{temperature_formula}', '<user-bc>', 'eval')\n")
-        f.write(f"      safe_locals = {{'x': x, 'y': y, 'z': z, 'sin': sin, 'pi': pi, 'cos': cos, 'sqrt': sqrt, 'exp': exp, 'tan': tan, 'log': log, 'abs': abs, 'fabs': fabs}}\n")
-        f.write(f"      WallTemp = eval(code, {{}}, safe_locals)\n")
+        # The formula is embedded as a python string literal (repr), so quotes in the
+        # expression cannot break the generated script. Note: eval() is not a sandbox,
+        # the formula is trusted user input of a local tool.
+        f.write(f"      # User expression with x,y,z (and x_norm) available\n")
+        f.write(f"      code = compile({str(temperature_formula)!r}, '<user-bc>', 'eval')\n")
+        f.write(f"      formula_locals = {{'x': x, 'y': y, 'z': z, 'x_norm': x_norm, 'sin': sin, 'pi': pi, 'cos': cos, 'sqrt': sqrt, 'exp': exp, 'tan': tan, 'log': log, 'abs': abs, 'fabs': fabs}}\n")
+        f.write(f"      WallTemp = eval(code, {{'__builtins__': {{}}}}, formula_locals)\n")
         f.write("      SU2Driver.SetMarkerCustomTemperature(MarkerID, i_vertex, WallTemp)\n")
         f.write("    \n")
         f.write("  \n")
@@ -286,14 +290,15 @@ def generate_dynamic_temperature_wrapper(
     log("info", f"Dynamic temperature wrapper generated at: {target_file}")
     
     
-    _generate_dynamic_config_file(boundary_marker, base_temperature, output_dir)
-    
+    _generate_dynamic_config_file(boundary_marker, base_temperature, output_dir, config_filename)
+
     return target_file
 
-def _generate_dynamic_config_file(boundary_marker: str, base_temperature: float, output_dir: Path):
-    
+def _generate_dynamic_config_file(boundary_marker: str, base_temperature: float, output_dir: Path,
+                                  config_filename: str = "config.cfg"):
+
     try:
-        config_path = output_dir / "config.cfg"
+        config_path = Path(output_dir) / config_filename
         
         
         config_lines = []
@@ -381,7 +386,8 @@ def save_json_cfg_py_file(
                 filename_py_export=filename_py_export,
                 output_dir=export_dir,
                 variables=variables,
-                temperature_formula=temp_function
+                temperature_formula=temp_function,
+                config_filename=Path(filename_cfg_export).with_suffix(".cfg").name,
             )
             break  
     else:        

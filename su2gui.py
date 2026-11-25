@@ -245,17 +245,12 @@ log("info", f"Assets registered (favicon={favicon_url}, logo={su2logo_url})")
 # matplotlib history
 state.show_dialog = False
 
-# Validation panel defaults (avoid undefined refs on first render)
-if not hasattr(state, 'apply_auto_fixes'):
-    state.apply_auto_fixes = True
-if not hasattr(state, 'validation_issues'):
-    state.validation_issues = []
-if not hasattr(state, 'validation_fixes'):
-    state.validation_fixes = []
-if not hasattr(state, 'validation_summary'):
-    state.validation_summary = ""
+# Validation panel defaults are initialized in core.solver (avoid undefined refs on first render).
+# Note: hasattr() on the trame state is always True, so it cannot be used for this.
 
-# TODO FIXME update from user input / cfg file
+# The history and restart file names are derived from the configuration with the
+# SU2 rules (CONV_FILENAME, TABULAR_FORMAT, RESTART_FILENAME, OUTPUT_FILES, ...),
+# see core/su2_files.py and core.solver.history_path()/restart_path().
 state.history_filename = 'history.csv'
 state.fileio_restart_filename = 'restart'
 
@@ -864,6 +859,9 @@ def load_file_su2(su2_file_upload, **kwargs):
     root.SetBlock(1, branch_boundary)
     root.GetMetaData(1).Set(vtk.vtkCompositeDataSet.NAME(), 'Boundary')
     pts = vtk.vtkPoints()
+    # vtkPoints is single precision by default: keep the coordinates in double precision,
+    # as they are written back to the .su2 mesh that SU2 reads
+    pts.SetDataTypeToDouble()
     # ### ### #
 
     # mesh file format specific
@@ -1767,10 +1765,11 @@ with SinglePageWithDrawerLayout(server) as layout:
     # text inside the toolbar
     layout.title.set_text(" ")
 
-    # matplotlib monitor: read the initial history file
-    [state.x,state.ylist] = readHistory(BASE / "user" / state.case_name / state.history_filename)
-    log("info", f"x= = {state.x}")
-    log("info", f"y= = {state.ylist}")
+    # matplotlib monitor: read the initial history file of the active case (if any)
+    if state.case_name:
+        [state.x,state.ylist] = readHistory(history_path())
+    else:
+        state.x, state.ylist = [], []
 
     with layout.toolbar:
 
@@ -1949,6 +1948,8 @@ with SinglePageWithDrawerLayout(server) as layout:
         Warn_dialog_card()
 
         solver_dialog_card_convergence()
+        # history plot: line visibility dialog
+        dialog_card()
         # set all physics states from the json file
         # this is reading the config file (done by read_json_data) and filling it into the GUI menu's
         set_json_physics()

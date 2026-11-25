@@ -216,7 +216,7 @@ class SU2ConfigValidator:
         
         inlet_count = self._count_markers_in_list(marker_inlet) if isinstance(marker_inlet, list) else 0
         
-        if solver in ['INC_EULER', 'INC_NAVIER_STOKES', 'INC_RANS'] and inlet_count:
+        if solver in ['INC_EULER', 'INC_NAVIER_STOKES', 'INC_RANS', 'INC_LES'] and inlet_count:
             if len(inc_inlet_type) != inlet_count:
                 errors.append({
                     'path': ['INC_INLET_TYPE'],
@@ -383,7 +383,7 @@ class SU2ConfigValidator:
             fixes.append({'path': ['KIND_TRANS_MODEL'], 'message': 'Disabled LM transition for axisymmetric flow'})
 
         # Inlet type count mismatches -> extend or trim INC_INLET_TYPE to match the number of inlet markers
-        if solver in ['INC_EULER', 'INC_NAVIER_STOKES', 'INC_RANS']:
+        if solver in ['INC_EULER', 'INC_NAVIER_STOKES', 'INC_RANS', 'INC_LES']:
             marker_inlet = cfg.get('MARKER_INLET', [])
             inlet_count = self._count_markers_in_list(marker_inlet)
             if inlet_count > 0:
@@ -573,11 +573,9 @@ class SU2ConfigValidator:
             
             if validation_result['valid']:
                 log("info", f"✓ Configuration file {filename_cfg} passed all validation checks")
-                
-                # Update state.jsonData with validated config
-                if validation_result['config_data']:
-                    state.jsonData.update(validation_result['config_data'])
-                    log("info", "JSON data updated with validated configuration")
+                # Note: state.jsonData is NOT updated from the re-parsed cfg: in the cfg
+                # lists are flattened and booleans are YES/NO strings, so it would change
+                # the types the GUI relies on.
             else:
                 log("error", f"✗ Configuration file {filename_cfg} has {len(validation_result['errors'])} validation errors:")
                 

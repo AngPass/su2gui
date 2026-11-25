@@ -9,6 +9,7 @@
 import sys
 import os
 import shutil
+import numpy as np
 import pandas as pd
 import subprocess
 import asyncio
@@ -41,6 +42,10 @@ from trame.app import get_server, asynchronous
 from trame.app.file_upload import ClientFile
 
 from vtkmodules.vtkCommonDataModel import vtkDataObject
+from vtkmodules.util.numpy_support import numpy_to_vtk
+
+# SU2 (develop) file conventions: file names, restart formats, history fields
+from core import su2_files
 
 # import the grid from the mesh module
 from ui.mesh import *
@@ -88,21 +93,22 @@ state.convergence_fields_visibility=[]
 # global iteration number while running a case
 state.global_iter = -1
 
-# Initialize solver state variables
-if not hasattr(state, 'solver_running'):
-    state.solver_running = False
-if not hasattr(state, 'solver_icon'):
-    state.solver_icon = "mdi-play-circle"
-if not hasattr(state, 'keep_updating'):
-    state.keep_updating = False
-if not hasattr(state, 'apply_auto_fixes'):
-    state.apply_auto_fixes = True
-if not hasattr(state, 'validation_issues'):
-    state.validation_issues = []
-if not hasattr(state, 'validation_fixes'):
-    state.validation_fixes = []
-if not hasattr(state, 'validation_summary'):
-    state.validation_summary = ""
+# Initialize solver state variables.
+# Note: trame's state returns None for unknown keys, so hasattr() is always True
+# and cannot be used to detect uninitialized variables.
+def _init_state(name, value):
+    if getattr(state, name, None) is None:
+        setattr(state, name, value)
+
+_init_state('solver_running', False)
+_init_state('solver_icon', "mdi-play-circle")
+_init_state('keep_updating', False)
+# The validation panel is currently hidden, so the user cannot see or disable the
+# auto-fixes: keep them off by default and only report the issues in the log.
+_init_state('apply_auto_fixes', False)
+_init_state('validation_issues', [])
+_init_state('validation_fixes', [])
+_init_state('validation_summary', "")
 
 # initialize from json file
 def set_json_solver():
@@ -178,37 +184,80 @@ def dialog_card():
           vuetify.VBtn("Close", classes="mt-5",click=update_dialog)
 
 
+def case_dir():
+    """Directory of the active case."""
+    return BASE / "user" / state.case_name
+
+
+def history_path():
+    """History file written by SU2 for the current configuration."""
+    return case_dir() / su2_files.history_filename(state.jsonData)
+
+
+def restart_path():
+    """Most recent restart file written by SU2 for the current configuration."""
+    return su2_files.latest_restart_path(case_dir(), state.jsonData)
+
+
+def _file_signature(path):
+    """(mtime, size) of a file, or None if it does not exist."""
+    try:
+        st = os.stat(path)
+        return (st.st_mtime_ns, st.st_size)
+    except OSError:
+        return None
+
+
+def _set_solver_stopped():
+    state.keep_updating = False
+    state.solver_running = False
+    state.solver_icon = "mdi-play-circle"
+
+
 # real-time update every xx seconds
 @asynchronous.task
 async def start_countdown(result):
     global proc_SU2
 
-    while state.keep_updating:
-        with state:
+    # Only re-read the restart file when SU2 has rewritten it: SU2 writes it every
+    # OUTPUT_WRT_FREQ iterations, not every polling interval.
+    last_restart_signature = None
+    try:
+        while state.keep_updating:
             await asyncio.sleep(2.0)
-            log("debug", f"iteration =  = {state.global_iter, type(state.global_iter)}")
-            wrt_freq = state.jsonData['OUTPUT_WRT_FREQ'][1]
-            log("debug", f"wrt_freq =  = {wrt_freq, type(wrt_freq)}")
-            log("info", f"iteration save =  = {state.global_iter % wrt_freq}")
-            log("debug", f"keep updating =  = {state.keep_updating}")
-            # update the history from file
-            readHistory(BASE / "user" / state.case_name / state.history_filename)
-            # update the restart from file, do not reset the active scalar value
-            # do not update when we are about to write to the file
-            readRestart(BASE / "user" / state.case_name / state.restart_filename, False)
+            with state:
+                try:
+                    readHistory(history_path())
 
-            # we flip-flop the true-false state to keep triggering the state and read the history file
-            state.countdown = not state.countdown
-            # check that the job is still running
-            log("debug", f"poll =  = {proc_SU2.poll()}")
-            if proc_SU2.poll() != None:
-              log("info", "job has stopped")
-              # stop updating the graphs
-              state.keep_updating = False
-              # set the running state to false
-              state.solver_running = False
-              state.solver_icon="mdi-play-circle"
-            update_su2_logs()
+                    current_restart = restart_path()
+                    signature = _file_signature(current_restart)
+                    if signature is not None and signature != last_restart_signature:
+                        if readRestart(current_restart, False):
+                            last_restart_signature = signature
+
+                    # flip-flop to trigger the redraw of the history plot
+                    state.countdown = not state.countdown
+                except Exception as e:
+                    import traceback
+                    log("error", f"Error while updating the solver monitor: {e}", detail=traceback.format_exc())
+
+                # check that the job is still running
+                if proc_SU2 is None or proc_SU2.poll() is not None:
+                    returncode = None if proc_SU2 is None else proc_SU2.returncode
+                    log("info", f"SU2 job has stopped (return code {returncode})")
+                    _set_solver_stopped()
+                    # final update with the last files written by SU2
+                    try:
+                        readHistory(history_path())
+                        readRestart(restart_path(), False)
+                    except Exception as e:
+                        log("warn", f"Could not read the final solver output: {e}")
+                update_su2_logs()
+    finally:
+        # never leave the GUI in the "running" state if the task dies
+        if proc_SU2 is None or proc_SU2.poll() is not None:
+            with state:
+                _set_solver_stopped()
 
 
 ###############################################################
@@ -348,9 +397,10 @@ def update_material(iter_idx, **kwargs):
 def update_material(convergence_val, **kwargs):
     #
     # update config option value
+    # CONV_RESIDUAL_MINVAL is a double option in SU2 (log10 of the residual)
     try:
-      state.jsonData['CONV_RESIDUAL_MINVAL'] = int(state.convergence_val)
-    except ValueError:
+      state.jsonData['CONV_RESIDUAL_MINVAL'] = float(state.convergence_val)
+    except (TypeError, ValueError):
       log("error", "Invalid value for CONV_RESIDUAL_MINVAL in solver")
 
 
@@ -412,16 +462,16 @@ def su2_play():
 
         log("info", f" Using case: {state.case_name}")
 
-        # Check if required files exist
-        mesh_filename = state.jsonData.get('MESH_FILENAME', 'unknown')
-        log("info", f"Expected mesh file: {mesh_filename}")
-
-        if not hasattr(state, 'jsonData') or not state.jsonData:
+        if not state.jsonData:
             log("error", " No configuration data available.")
             log("error", "Please load a mesh file or configuration.")
             state.solver_running = False
             state.solver_icon = "mdi-play-circle"
             return
+
+        # Check if required files exist
+        mesh_filename = state.jsonData.get('MESH_FILENAME', 'unknown')
+        log("info", f"Expected mesh file: {mesh_filename}")
 
         # save the cfg file
         try:
@@ -433,51 +483,12 @@ def su2_play():
             state.solver_icon = "mdi-play-circle"
             return
 
-        # Preflight validation: validate the saved cfg by converting to JSON, run custom checks,
-        # and apply safe auto-fixes. Do not rely on bundled schema by default.
+        # Preflight validation of the saved cfg (custom cross-option checks)
         try:
-            cfg_path = str(BASE / "user" / state.case_name / state.filename_cfg_export)
-            validator = SU2ConfigValidator()
-            result = validator.validate_config_file(cfg_path, auto_fix=bool(state.apply_auto_fixes))
-
-            if not result.get('valid', False):
-                total = len(result.get('errors', []))
-                log("error", f"Configuration preflight found {total} issues")
-                # Show up to 10 issues for readability
-                for i, err in enumerate(result.get('errors', [])[:10], start=1):
-                    path = "/".join([str(p) for p in err.get('path', [])]) if isinstance(err, dict) else ''
-                    msg = err.get('message', str(err)) if isinstance(err, dict) else str(err)
-                    log("error", f"  {i}. {path}: {msg}")
-                if total > 10:
-                    log("error", f"  ... and {total - 10} more")
-
-            # If auto-fixes were applied, update state.jsonData and re-save files
-            fixes = result.get('applied_fixes', [])
-            # Update UI state for validation panel
-            state.validation_issues = [
-                {
-                    'path': '/'.join([str(p) for p in (e.get('path') or [])]) if isinstance(e, dict) else '',
-                    'message': (e.get('message') if isinstance(e, dict) else str(e))
-                }
-                for e in result.get('errors', [])
-            ]
-            state.validation_fixes = fixes
-            state.validation_summary = (
-                f"Issues: {len(state.validation_issues)} | Fixes: {len(fixes)} | Auto-fix: {'ON' if state.apply_auto_fixes else 'OFF'}"
-            )
-            state.dirty('validation_issues'); state.dirty('validation_fixes'); state.dirty('validation_summary'); state.dirty('apply_auto_fixes')
-            if fixes:
-                log("info", f"Applied {len(fixes)} auto-fix(es) to configuration before run")
-                for fix in fixes[:10]:
-                    log("info", f"  - {fix.get('message', '')}")
-                # Update in-memory config and persist
-                fixed_cfg = result.get('config_data', {})
-                if isinstance(fixed_cfg, dict):
-                    state.jsonData.update(fixed_cfg)
-                    # Persist the updated JSON/CFG so SU2 uses the corrected values
-                    save_json_cfg_file(state.filename_json_export, state.filename_cfg_export)
+            _run_validation(log_issues=True)
         except Exception as e:
-            log("warn", f"Preflight validation failed: {e}")
+            import traceback
+            log("warn", f"Preflight validation could not be completed: {e}", detail=traceback.format_exc())
 
         # Continue with mesh save and solver launch
         # save the mesh file
@@ -496,14 +507,20 @@ def su2_play():
         state.su2_logs = ""
 
         # run SU2_CFD with config.cfg
-        with open(BASE / "user" / state.case_name / "su2.out", "w") as outfile:
-            with open(BASE / "user" / state.case_name / "su2.err", "w") as errfile:
-                proc_SU2 = subprocess.Popen([su2_cfd_path, state.filename_cfg_export],
-                                            cwd=BASE / "user" / state.case_name,
-                                            text=True,
-                                            stdout=outfile,
-                                            stderr=errfile
-                                            )
+        try:
+            with open(case_dir() / "su2.out", "w") as outfile:
+                with open(case_dir() / "su2.err", "w") as errfile:
+                    proc_SU2 = subprocess.Popen([su2_cfd_path, state.filename_cfg_export],
+                                                cwd=case_dir(),
+                                                text=True,
+                                                stdout=outfile,
+                                                stderr=errfile
+                                                )
+        except OSError as e:
+            log("error", f"Could not start SU2_CFD: {e}")
+            proc_SU2 = None
+            _set_solver_stopped()
+            return
         # at this point we have started the simulation
         # we can now start updating the real-time plots
         state.keep_updating = True
@@ -528,6 +545,89 @@ def su2_play():
         else:
             log("warning", "No SU2 process to terminate")
 
+# Options that are regenerated from the boundary conditions (state.BCDictList) by
+# createjsonMarkers() at every save: a fix written to jsonData would be overwritten,
+# so these have to be corrected in the Boundaries tab instead.
+_BC_GENERATED_PREFIXES = ("MARKER_",)
+_BC_GENERATED_KEYS = {"INC_INLET_TYPE", "INC_OUTLET_TYPE", "INLET_TYPE"}
+
+
+def _is_bc_generated(key):
+    return key in _BC_GENERATED_KEYS or str(key).startswith(_BC_GENERATED_PREFIXES)
+
+
+def _coerce_like(original, new):
+    """Keep the json type of an option when taking a value parsed from the cfg file."""
+    if isinstance(original, bool):
+        return su2_files.as_bool(new, original)
+    return new
+
+
+def _apply_validation_fixes(result):
+    """Apply only the options changed by the auto-fixes, keeping the json types.
+
+    The validator re-parses the written .cfg, where lists are flattened and
+    booleans are YES/NO strings, so its full config must never replace jsonData.
+    Returns the number of fixes applied to jsonData.
+    """
+    fixed_cfg = result.get('config_data') or {}
+    applied = 0
+    for fix in result.get('applied_fixes', []):
+        path = fix.get('path') or []
+        if not path:
+            continue
+        key = str(path[0])
+        if _is_bc_generated(key):
+            log("error", f"Boundary condition issue ({key}): {fix.get('message', '')}. "
+                         "Please correct it in the Boundaries tab.")
+            continue
+        if key in fixed_cfg:
+            state.jsonData[key] = _coerce_like(state.jsonData.get(key), fixed_cfg[key])
+        else:
+            state.jsonData.pop(key, None)
+        log("warn", f"Auto-fix applied: {fix.get('message', '')}")
+        applied += 1
+    return applied
+
+
+def _run_validation(log_issues):
+    """Validate the saved cfg, update the validation panel and apply auto-fixes if enabled."""
+    cfg_path = str(case_dir() / state.filename_cfg_export)
+    auto_fix = bool(state.apply_auto_fixes)
+    validator = SU2ConfigValidator()
+    result = validator.validate_config_file(cfg_path, auto_fix=auto_fix)
+
+    errors = result.get('errors', [])
+    if log_issues and not result.get('valid', False):
+        log("error", f"Configuration preflight found {len(errors)} issues")
+        # Show up to 10 issues for readability
+        for i, err in enumerate(errors[:10], start=1):
+            path = "/".join([str(p) for p in err.get('path', [])]) if isinstance(err, dict) else ''
+            msg = err.get('message', str(err)) if isinstance(err, dict) else str(err)
+            log("error", f"  {i}. {path}: {msg}")
+        if len(errors) > 10:
+            log("error", f"  ... and {len(errors) - 10} more")
+
+    fixes = result.get('applied_fixes', [])
+    state.validation_issues = [
+        {
+            'path': '/'.join([str(p) for p in (e.get('path') or [])]) if isinstance(e, dict) else '',
+            'message': (e.get('message') if isinstance(e, dict) else str(e))
+        }
+        for e in errors
+    ]
+    state.validation_fixes = fixes
+    state.validation_summary = (
+        f"Issues: {len(state.validation_issues)} | Fixes: {len(fixes)} | Auto-fix: {'ON' if auto_fix else 'OFF'}"
+    )
+    state.dirty('validation_issues'); state.dirty('validation_fixes'); state.dirty('validation_summary'); state.dirty('apply_auto_fixes')
+
+    if auto_fix and fixes and _apply_validation_fixes(result) > 0:
+        # Persist the corrected options so SU2 uses them
+        save_json_cfg_file(state.filename_json_export, state.filename_cfg_export)
+    return result
+
+
 def run_preflight_validation():
     """Run preflight validation and update the validation panel, without starting SU2."""
     try:
@@ -536,31 +636,11 @@ def run_preflight_validation():
             save_json_cfg_file(state.filename_json_export, state.filename_cfg_export)
         except Exception as e:
             log('warn', f'Could not save config before preflight: {e}')
-        cfg_path = str(BASE / "user" / state.case_name / state.filename_cfg_export)
-        validator = SU2ConfigValidator()
-        result = validator.validate_config_file(cfg_path, auto_fix=bool(state.apply_auto_fixes))
-        fixes = result.get('applied_fixes', [])
-        state.validation_issues = [
-            {
-                'path': '/'.join([str(p) for p in (e.get('path') or [])]) if isinstance(e, dict) else '',
-                'message': (e.get('message') if isinstance(e, dict) else str(e))
-            }
-            for e in result.get('errors', [])
-        ]
-        state.validation_fixes = fixes
-        state.validation_summary = (
-            f"Issues: {len(state.validation_issues)} | Fixes: {len(fixes)} | Auto-fix: {'ON' if state.apply_auto_fixes else 'OFF'}"
-        )
-        state.dirty('validation_issues'); state.dirty('validation_fixes'); state.dirty('validation_summary'); state.dirty('apply_auto_fixes')
-        # If fixes were applied, persist them
-        if fixes:
-            fixed_cfg = result.get('config_data', {})
-            if isinstance(fixed_cfg, dict):
-                state.jsonData.update(fixed_cfg)
-                save_json_cfg_file(state.filename_json_export, state.filename_cfg_export)
+        _run_validation(log_issues=True)
         log('info', 'Preflight validation complete')
     except Exception as e:
-        log('warn', f'Preflight validation failed: {e}')
+        import traceback
+        log('warn', f'Preflight validation failed: {e}', detail=traceback.format_exc())
 
 # matplotlib history
 def update_convergence_fields_visibility(index, visibility):
@@ -611,65 +691,28 @@ def update_solver_dialog_card_convergence():
     log("debug", f"changing state of solver_dialog_Card_convergence to: = {state.show_solver_dialog_card_convergence}")
     state.show_solver_dialog_card_convergence = not state.show_solver_dialog_card_convergence    # if we show the card, then also update the fields that we need to show
     if state.show_solver_dialog_card_convergence==True:
-      log("debug", "updating list of fields")
-      # note that Euler and inc_euler can be treated as compressible / incompressible as well
-      log("debug", state.jsonData.get('SOLVER', 'EULER'))
-
-      # Safely check if INC_ENERGY_EQUATION exists in the state
-      inc_energy = state.jsonData.get('INC_ENERGY_EQUATION', False)
-      log("debug", f"INC_ENERGY_EQUATION: {inc_energy}")
-
-      if ("INC" in str(state.jsonData.get('SOLVER', ''))):
-        compressible = False
-      else:
-        compressible = True
-
-      # if incompressible, we check if temperature is on
-      if (compressible==False):
-        if (inc_energy==True):
-           energy=True
-        else:
-           energy=False
-
-        # INC_RANS: [PRESSURE VELOCITY-X VELOCITY-Y] [VELOCITY-Z] [TEMPERATURE]
-        # SA: [NU_TILDE]
-        # SST: [TKE, DISSIPATION]
-        # RANS: [DENSITY MOMENTUM-X MOMENTUM-Y] [ENERGY] [MOMENTUM-Z]
-
-      if (compressible==True):
-        state.convergence_fields=["RMS_DENSITY","RMS_MOMENTUM-X","RMS_MOMENTUM-Y"]
-        if (state.nDim==3):
-          state.convergence_fields.append("RMS_MOMENTUM-Z")
-        state.convergence_fields.append("RMS_ENERGY")
-      else:
-        state.convergence_fields=["RMS_PRESSURE","RMS_VELOCITY-X","RMS_VELOCITY-Y"]
-        if (state.nDim==3):
-          state.convergence_fields.append("RMS_VELOCITY-Z")
-        if (energy==True):
-          state.convergence_fields.append("RMS_TEMPERATURE")
-
-      state.convergence_fields_range=list(range(0,len(state.convergence_fields)))
+      # RMS residual history fields defined by SU2 for this setup
+      # (compressible: RMS_DENSITY..., incompressible: RMS_PRESSURE..., energy: RMS_ENTHALPY,
+      #  weakly coupled heat: RMS_TEMPERATURE, SA: RMS_NU_TILDE, SST: RMS_TKE/RMS_DISSIPATION)
+      state.convergence_fields = su2_files.residual_history_fields(state.jsonData, state.nDim)
+      state.convergence_fields_range = list(range(len(state.convergence_fields)))
 
       # get the checkbox states from the jsondata
-      state.convergence_fields_visibility = [False for i in state.convergence_fields]
-      for field in state.jsonData['CONV_FIELD']:
-         log("debug", f"field= = {field}")
-         for i in range(len(state.convergence_fields)):
-            log("debug", f"i= = {i} {state.convergence_fields[i]}")
-            if (field==state.convergence_fields[i]):
-               log("debug", "field found")
-               state.convergence_fields_visibility[i] = True
+      selected = [str(f) for f in su2_files.as_list(state.jsonData.get('CONV_FIELD'))]
+      state.convergence_fields_visibility = [f in selected for f in state.convergence_fields]
 
       log("debug", f"convergence fields: = {state.convergence_fields}")
       state.dirty('convergence_fields')
       state.dirty('convergence_fields_range')
+      state.dirty('convergence_fields_visibility')
     else:
-
-       # the dialog is closed again: we update the state of CONV_FIELD in jsonData
-         state.jsonData['CONV_FIELD']=[]
-         for i in range(len(state.convergence_fields_visibility)):
-            if (state.convergence_fields_visibility[i]==True):
-               state.jsonData['CONV_FIELD'].append(state.convergence_fields[i])
+      # the dialog is closed again: update CONV_FIELD in jsonData. Keep the fields that
+      # are not RMS residuals (e.g. coefficients used for Cauchy convergence).
+      offered = list(state.convergence_fields or [])
+      visibility = list(state.convergence_fields_visibility or [])
+      kept = [str(f) for f in su2_files.as_list(state.jsonData.get('CONV_FIELD')) if str(f) not in offered]
+      chosen = [f for f, v in zip(offered, visibility) if v]
+      state.jsonData['CONV_FIELD'] = chosen + kept
 
 
 
@@ -687,49 +730,37 @@ def update_dialog():
 
 
 ###############################################################################
+# Iteration counters written by SU2 in the history file (in order of preference)
+ITERATION_COLUMNS = ('Inner_Iter', 'Outer_Iter', 'Time_Iter')
+
 # Read the history file
 # set the names and visibility
 def readHistory(filename):
     log("debug", f"read_history, filename={filename}")
 
     # Initialize state variables if they don't exist
-    if not hasattr(state, 'monitorLinesNames'):
-        state.monitorLinesNames = []
-    if not hasattr(state, 'monitorLinesRange'):
-        state.monitorLinesRange = []
-    if not hasattr(state, 'monitorLinesVisibility'):
-        state.monitorLinesVisibility = []
-    if not hasattr(state, 'x'):
-        state.x = []
-    if not hasattr(state, 'ylist'):
-        state.ylist = []
-    if not hasattr(state, 'global_iter'):
-        state.global_iter = 0
+    _init_state('monitorLinesNames', [])
+    _init_state('monitorLinesRange', [])
+    _init_state('monitorLinesVisibility', [])
+    _init_state('x', [])
+    _init_state('ylist', [])
+    _init_state('global_iter', 0)
 
-    # Check if file exists
+    # Check if file exists. Do not create it: SU2 creates it at the start of the run,
+    # and a placeholder written by the GUI could race with SU2.
     filename = str(filename)
     if not os.path.exists(filename):
-        log("warn", f"History file does not exist: {filename}")
-        # Create empty history file if it doesn't exist
-        try:
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
-            with open(filename, 'w') as f:
-                f.write("# SU2 History File\n")
-                f.write("# No data available yet\n")
-            log("info", f"Created empty history file: {filename}")
-        except Exception as e:
-            log("error", f"Could not create history file: {e}")
-
-        # Return empty data
+        log("debug", f"History file does not exist (yet): {filename}")
         state.x = []
         state.ylist = []
         state.global_iter = 0
         return [state.x, state.ylist]
 
     try:
-        skipNrRows = []
-        # read the history file
-        dataframe = pd.read_csv(filename, skiprows=skipNrRows)
+        # read the history file (SU2 writes quoted, space-padded column names)
+        dataframe = su2_files.clean_history_columns(pd.read_csv(filename, skipinitialspace=True))
+        # the last line can be incomplete while SU2 is writing it
+        dataframe = dataframe.apply(pd.to_numeric, errors="coerce").dropna(how="all")
 
         # Check if dataframe is empty
         if dataframe.empty:
@@ -740,19 +771,14 @@ def readHistory(filename):
             state.global_iter = 0
             return [state.x, state.ylist]
 
-        # get rid of quotation marks in the column names
-        dataframe.columns = dataframe.columns.str.replace('"','')
-        # get rid of spaces in the column names
-        dataframe.columns = dataframe.columns.str.replace(' ','')
+        # limit the columns to the residuals: rms[...] (and max[...], bgs[...] if requested)
+        dfrms = dataframe.filter(regex=r'^(rms|max|bgs)\[')
 
-        # limit the columns to the ones containing the strings rms and Res
-        dfrms = dataframe.filter(regex='rms|Res')
-
-        # If no columns match the filter, use all columns
+        # If no columns match the filter, use all numeric columns except the iteration counters
         if dfrms.empty:
-            log("info", "No 'rms' or 'Res' columns found, using all numeric columns")
-            # Select only numeric columns
-            dfrms = dataframe.select_dtypes(include=['number'])
+            log("info", "No residual columns found, using all numeric columns")
+            dfrms = dataframe.drop(columns=[c for c in ITERATION_COLUMNS if c in dataframe.columns])
+            dfrms = dfrms.select_dtypes(include=['number'])
 
             # If still no numeric columns, log warning and return empty
             if dfrms.empty:
@@ -762,41 +788,36 @@ def readHistory(filename):
                 state.global_iter = 0
                 return [state.x, state.ylist]
 
-        # only set the initial state the first time
-        if not state.monitorLinesNames or len(state.monitorLinesNames) == 0:
-            state.monitorLinesNames = list(dfrms.columns)
-            state.monitorLinesRange = list(range(0, len(state.monitorLinesNames)))
-            state.monitorLinesVisibility = [True for i in range(len(dfrms.columns))]
+        # (re)initialize the line names/visibility when the set of columns changes
+        columns = list(dfrms.columns)
+        if list(state.monitorLinesNames or []) != columns:
+            state.monitorLinesNames = columns
+            state.monitorLinesRange = list(range(len(columns)))
+            state.monitorLinesVisibility = [True] * len(columns)
             state.dirty('monitorLinesNames')
             state.dirty('monitorLinesVisibility')
             state.dirty('monitorLinesRange')
             log("info", f"Initialized monitor lines: {state.monitorLinesNames}")
 
-        state.x = [i for i in range(len(dfrms.index))]
-        # number of global iterations, assuming we start from 0 and every line is an iteration.
-        # actually, we should look at Inner_Iter
-        state.global_iter = len(dfrms.index)
-        log("info", f"History data: {len(state.x)} iterations")
+        # x axis: the iteration counter written by SU2 (Inner_Iter for steady runs,
+        # Time_Iter for unsteady ones); fall back to the row number.
+        iter_col = next((c for c in ITERATION_COLUMNS if c in dataframe.columns), None)
+        if su2_files.is_time_domain(state.jsonData) and 'Time_Iter' in dataframe.columns:
+            iter_col = 'Time_Iter'
+        if iter_col is not None:
+            state.x = [int(v) for v in dataframe[iter_col].fillna(0).tolist()]
+        else:
+            state.x = list(range(len(dfrms.index)))
+        state.global_iter = state.x[-1] if state.x else 0
 
-        state.ylist = []
-        for c in range(len(dfrms.columns)):
-            state.ylist.append(dfrms.iloc[:,c].tolist())
+        state.ylist = [dfrms.iloc[:, c].tolist() for c in range(len(dfrms.columns))]
 
         # Update state
         state.dirty('x')
         state.dirty('ylist')
         state.dirty('global_iter')
-        state.dirty('monitorLinesNames')
-        state.dirty('monitorLinesVisibility')
-        state.dirty('monitorLinesRange')
 
-        # Only call dialog_card if we're in a UI context
-        try:
-            dialog_card()
-        except Exception as e:
-            log("debug", f"Could not create dialog card (normal during initialization): {e}")
-
-        log("info", f"Successfully loaded history data: {len(state.x)} iterations, {len(dfrms.columns)} variables")
+        log("debug", f"Loaded history data: {len(state.x)} iterations, {len(dfrms.columns)} variables")
         return [state.x, state.ylist]
 
     except pd.errors.EmptyDataError:
@@ -817,192 +838,33 @@ def readHistory(filename):
 
 ###############################################################################
 # read restart file (binary or ASCII)
-def Read_SU2_Restart_Binary(val_filename):
-    """
-    Read restart file with improved error handling and format detection.
-    This function properly handles both binary and ASCII formats.
+def Read_SU2_Restart(val_filename):
+    """Read an SU2 restart/solution file into a DataFrame.
+
+    The format is detected like SU2 does (CSolver::Read_SU2_Restart_ASCII/Binary):
+    a binary file starts with the magic number 535532, otherwise it is the CSV
+    written by RESTART_ASCII. Returns an empty DataFrame on failure.
     """
     val_filename = str(val_filename)
-    log("info", f"Reading restart file: {val_filename}")
-
-    def detect_file_format(file_path):
-        """Detect if a restart file is binary or ASCII format with improved detection."""
-        try:
-            with open(file_path, 'rb') as f:
-                chunk = f.read(1024)
-
-                if not chunk:
-                    return 'ascii'  # Empty file, treat as ASCII
-
-                # Check for null bytes (strong indicator of binary)
-                if b'\x00' in chunk:
-                    return 'binary'
-
-                # Check for high percentage of non-printable characters
-                non_printable = sum(1 for byte in chunk if byte < 32 or byte > 126)
-                threshold = 0.3
-
-                if non_printable / len(chunk) > threshold:
-                    return 'binary'
-                else:
-                    # Additional check for SU2 ASCII format patterns
-                    try:
-                        text_chunk = chunk.decode('utf-8')
-                        # Look for typical SU2 ASCII restart file patterns
-                        if any(pattern in text_chunk.lower() for pattern in ['ndime', 'nelem', 'npoin']):
-                            log("info", "SU2 ASCII format patterns detected")
-                        return 'ascii'
-                    except UnicodeDecodeError:
-                        return 'binary'
-
-        except Exception as e:
-            log("warn", f"Error detecting file format: {e}")
-            return 'ascii'  # Default to ASCII if detection fails
-
-    def read_ascii_restart_file(file_path):
-        """Read ASCII format restart file with robust error handling."""
-        try:
-            # Try pandas CSV reader first
-            try:
-                df = pd.read_csv(file_path)
-                log("info", f"Successfully read restart file as CSV: {len(df)} rows, {len(df.columns)} columns")
-                return df
-            except Exception as e:
-                log("info", f"Could not read as CSV, trying custom parsing: {e}")
-
-            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-                lines = f.readlines()
-
-            if not lines:
-                log("warn", "Empty restart file")
-                return pd.DataFrame()
-
-            data = []
-            field_names = None
-            data_start = 0
-
-            # Try to parse header safely
-            first_line = lines[0].strip().split()
-            if len(first_line) >= 3:
-                try:
-                    nFields = int(first_line[1])
-                    nPoints = int(first_line[2])
-                    log("info", f"Parsed header: nFields={nFields}, nPoints={nPoints}")
-
-                    # Get field names from second line
-                    if len(lines) > 1:
-                        field_names = lines[1].strip().split()
-                        data_start = 2
-                except ValueError as e:
-                    log("info", f"Header parsing failed, treating as data: {e}")
-                    data_start = 0
-
-            # Parse data lines with error handling
-            for i in range(data_start, len(lines)):
-                line = lines[i].strip()
-                if line and not line.startswith('#'):
-                    try:
-                        values = [float(x) for x in line.split()]
-                        if values:
-                            data.append(values)
-                    except ValueError:
-                        # Skip lines that can't be parsed as numbers
-                        continue
-
-            if not data:
-                log("warn", "No valid data found in restart file")
-                return pd.DataFrame()
-
-            # Create column names if not found
-            if not field_names:
-                max_cols = max(len(row) for row in data) if data else 0
-                field_names = [f'Field_{i}' for i in range(max_cols)]
-
-            # Ensure all rows have the same number of columns
-            max_cols = len(field_names)
-            for row in data:
-                while len(row) < max_cols:
-                    row.append(0.0)  # Pad with zeros instead of NaN
-
-            df = pd.DataFrame(data, columns=field_names[:max_cols])
-            log("info", f"Successfully parsed ASCII restart file: {len(df)} rows, {len(df.columns)} columns")
-            return df
-
-        except Exception as e:
-            log("error", f"Error reading ASCII restart file: {e}")
-            return pd.DataFrame()
-
-    def read_binary_restart_file(file_path):
-        """Handle binary restart files with improved detection and user guidance."""
-        try:
-            file_size = os.path.getsize(file_path)
-            log("info", f"Binary restart file detected: {os.path.basename(file_path)} ({file_size} bytes)")
-
-            # Try to detect if it's actually a text file misidentified as binary
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    first_line = f.readline().strip()
-                    if first_line and any(c.isdigit() for c in first_line):
-                        log("info", "File appears to be ASCII format despite binary detection - attempting ASCII read")
-                        return read_ascii_restart_file(file_path)
-            except UnicodeDecodeError:
-                pass  # Truly binary file
-
-            # Check for SU2 binary format signatures
-            with open(file_path, 'rb') as f:
-                header = f.read(64)  # Read first 64 bytes for analysis
-
-            # Provide helpful guidance only once per session
-            if not hasattr(read_binary_restart_file, '_guidance_shown'):
-                provide_binary_restart_guidance()
-                read_binary_restart_file._guidance_shown = True
-            else:
-                log("info", "Binary restart file detected - see previous guidance for conversion options")
-
-            # Return empty DataFrame but with more context
-            return pd.DataFrame()
-
-        except Exception as e:
-            log("error", f"Error processing binary restart file: {e}")
-            return pd.DataFrame()
-
-    # Main logic
+    if not os.path.exists(val_filename):
+        log("debug", f"Restart file does not exist (yet): {val_filename}")
+        return pd.DataFrame()
     try:
-        if not os.path.exists(val_filename):
-            log("error", f"Restart file does not exist: {val_filename}")
-            return pd.DataFrame()
-
-        # Detect file format
-        file_format = detect_file_format(val_filename)
-        log("info", f"Detected file format: {file_format}")
-
-        # Read based on format
-        if file_format == 'ascii':
-            df = read_ascii_restart_file(val_filename)
-        else:
-            df = read_binary_restart_file(val_filename)
-
-        if df.empty:
-            log("info", "Restart file processing completed - no data loaded")
-            if file_format == 'binary':
-                log("info", "This is expected for binary files until binary parsing is implemented")
-        else:
-            log("info", f"Successfully loaded restart file with {len(df)} rows and {len(df.columns)} columns")
-
+        df = su2_files.read_su2_restart(val_filename)
+        log("debug", f"Read restart file {val_filename}: {len(df)} points, {len(df.columns)} columns")
         return df
-
     except Exception as e:
-        log("error", f"Failed to read restart file {val_filename}: {e}")
+        # typically the file is being rewritten by SU2 while we read it
+        log("info", f"Could not read restart file {val_filename}: {e}")
         return pd.DataFrame()
 
 
-# # ##### upload ascii restart file #####
+# ##### upload restart/solution file #####
 @state.change("restartFile")
 def uploadRestart(restartFile, **kwargs):
   log("debug", "Updating restart file")
   if restartFile is None:
     state.jsonData["RESTART_SOL"] = False
-    state.jsonData["READ_BINARY_RESTART"] = False
     log("debug", "removed file")
     return
 
@@ -1014,180 +876,114 @@ def uploadRestart(restartFile, **kwargs):
   filename = restartFile['name']
   file = ClientFile(restartFile)
 
-  base_path = Path("e:/gsoc/su2gui/user") / state.case_name
-  base_path.mkdir(parents=True, exist_ok=True)  # Create directories if they do not exist
+  # raw bytes of the uploaded file
+  content = file.content
+  if isinstance(content, str):
+    if filename.endswith(".dat"):
+      try:
+        content = b64decode(content, validate=True)
+      except Exception:
+        content = content.encode('utf-8')
+    else:
+      content = content.encode('utf-8')
 
-  # Handle different file extensions
-  file_path = BASE / "user" / state.case_name / filename
+  # SU2 decides the format from READ_BINARY_RESTART and the magic number
+  binary = su2_files.bytes_are_su2_binary_restart(content)
+
+  # SU2 reads GetFilename(SOLUTION_FILENAME, ".dat"/".csv"): the file on disk must
+  # carry the extension that matches the format.
+  stored_name = su2_files.solution_filename_for(filename, binary)
+  case_dir().mkdir(parents=True, exist_ok=True)
+  file_path = case_dir() / stored_name
 
   try:
-    if filename.endswith(".csv") or filename.endswith(".txt"):
-      # Handle text-based files
-      try:
-          # Try to decode as UTF-8 first
-          if isinstance(file.content, bytes):
-              filecontent = file.content.decode('utf-8')
-          else:
-              filecontent = file.content
-      except UnicodeDecodeError:
-          try:
-              # Try other encodings
-              filecontent = file.content.decode('latin-1')
-              log("warning", "File decoded using latin-1 encoding")
-          except:
-              log("error", "Could not decode file content")
-              return
+    with open(file_path, 'wb') as f:
+      f.write(content)
 
-      with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(filecontent)
-
-      state.jsonData["READ_BINARY_RESTART"] = False
-
-    elif filename.endswith(".dat"):
-      # Handle binary files
-      try:
-          if isinstance(file.content, str):
-              # If it's a base64 string, decode it
-              filecontent = b64decode(file.content)
-          else:
-              filecontent = file.content
-      except Exception as e:
-          log("error", f"Error processing binary file content: {e}")
-          return
-
-      with open(file_path, 'wb') as f:
-        f.write(filecontent)
-
-      state.jsonData["READ_BINARY_RESTART"] = True
-
-    else:
-      # For unknown extensions, try to detect format
-      log("info", f"Unknown file extension: {filename}. Attempting auto-detection.")
-
-      # Save as binary first to detect format
-      if isinstance(file.content, str):
-          try:
-              filecontent = b64decode(file.content)
-          except:
-              filecontent = file.content.encode('utf-8')
-      else:
-          filecontent = file.content
-
-      with open(file_path, 'wb') as f:
-        f.write(filecontent)
-
-      # The Read_SU2_Restart_Binary function will auto-detect the format
-      state.jsonData["READ_BINARY_RESTART"] = False
-
-    # Update configuration
-    state.jsonData["SOLUTION_FILENAME"] = filename
+    state.jsonData["READ_BINARY_RESTART"] = binary
+    state.jsonData["SOLUTION_FILENAME"] = stored_name
     state.jsonData["RESTART_SOL"] = True
+    if stored_name != filename:
+      log("info", f"Solution file '{filename}' stored as '{stored_name}' (SU2 expects the {'.dat' if binary else '.csv'} extension)")
+    if su2_files.is_time_domain(state.jsonData):
+      log("warn", "Unsteady restart: SU2 reads SOLUTION_FILENAME with the RESTART_ITER suffix "
+                  "(e.g. solution_00009.dat), rename the file accordingly.")
 
     # Read and process the restart file
-    readRestart(file_path, True, initialization='.auto')
-
-    log("info", f"Restart file '{filename}' loaded successfully")
-
+    if readRestart(file_path, True, initialization='.auto'):
+      log("info", f"Restart file '{filename}' loaded successfully")
   except Exception as e:
-    log("error", f"Error uploading restart file: {e}")
+    import traceback
+    log("error", f"Error uploading restart file: {e}", detail=traceback.format_exc())
     return
 
 
-# check if a file has a handle on it
-#def has_handle(fpath):
-#    for proc in psutil.process_iter():
-#        try:
-#            for item in proc.open_files():
-#                log("info", f"item= = {item}")
-#                if fpath == item.path:
-#                    return True
-#        except Exception:
-#            pass
-#
-#    return False
-
-# read the restart file
+# read the restart file and attach its fields to the grid
 # reset_active_field is used to show the active field
+# returns True when the fields were updated
 def readRestart(restartFile, reset_active_field, **kwargs):
 
-  # check and add extension if needed
   restartFile = str(restartFile)
   log("debug", f"read_restart, filename= = {restartFile}")
 
-  # kwargs is used to pass the initialization of the restart file
-  # check if function is called by restart initialization
   if 'initialization' in kwargs:
-    # Always use the improved reading function regardless of extension
-    df = Read_SU2_Restart_Binary(restartFile)
+    df = Read_SU2_Restart(restartFile)
   else:
-    # move the file to prevent that the file is overwritten while reading
-    # the file can still be overwritten while renaming, but the time window is smaller
-    # we also try to prevent this by not calling readRestart when we are about to write a file
-    # (based on current iteration number)
+    # copy the file first, to reduce the time window in which SU2 can rewrite it
+    # while we read it; a partially written binary file is detected by the reader
+    lock_file = restartFile + ".lock"
     try:
-        lock_file = restartFile + ".lock"
+      shutil.copy2(restartFile, lock_file)
+      df = Read_SU2_Restart(lock_file)
+    except OSError as e:
+      log("debug", f"Restart file not available yet: {e}")
+      df = pd.DataFrame()
+    finally:
+      try:
+        os.remove(lock_file)
+      except OSError:
+        pass
 
-        # Copy or overwrite the lock_file with the contents of restartFile
-        # shutil.copy2 handles binary files correctly
-        shutil.copy2(restartFile, lock_file)
+  if df.empty:
+    return False
 
-        # Use the improved reading function for all file types
-        df = Read_SU2_Restart_Binary(lock_file)
-    except Exception as e:
-        log("info", f"Unable to read restart file. It may not be available yet or is being used by another process.\n  {e}")
-        df = pd.DataFrame()
+  # check if the points match, if not then the restart does not belong to this mesh
+  # (or we were reading while SU2 was writing it) and we skip this update
+  points = grid.GetPoints()
+  n_points = 0 if points is None else points.GetNumberOfPoints()
+  if len(df) != n_points:
+    log("info", f"Restart file has {len(df)} points, the mesh has {n_points}: skipping update")
+    return False
 
+  field_names = su2_files.solution_fields(df)
+  if not field_names:
+    log("warn", "Restart file contains no solution fields")
+    return False
 
-  # check if the points and cells match, if not then we probably were writing to the file
-  # while reading it and we just skip this update
-  log("info", f"number of points read =  = {len(df)}")
-  log("info", f"number of points expected =  = {grid.GetPoints().GetNumberOfPoints()}")
-  if len(df) != grid.GetPoints().GetNumberOfPoints():
-    log("info", "Restart file is invalid, skipping update")
-    return
+  # remove the arrays of the previous restart that are not in this one
+  point_data = grid.GetPointData()
+  previous = [a.get('text') for a in (state.dataset_arrays or [])]
+  for name in previous:
+    if name not in field_names:
+      point_data.RemoveArray(name)
 
   # construct the dataset_arrays
   datasetArrays = []
-  counter=0
-  for key in df.keys():
-    name = key
-    log("info", f"reading restart, field name =  = {name}")
-    # let's skip these
-    if (name in ['PointID','x','y']):
-      continue
-
-    ArrayObject = vtk.vtkFloatArray()
-    ArrayObject.SetName(name)
-    # all components are scalars, no vectors for velocity
-    ArrayObject.SetNumberOfComponents(1)
-    # how many elements do we have?
-    nElems = len(df[name])
-    ArrayObject.SetNumberOfValues(nElems)
-    ArrayObject.SetNumberOfTuples(nElems)
-
-    # Nijso: TODO FIXME very slow!
-    for i in range(nElems):
-      ArrayObject.SetValue(i,df[name][i])
-
-    grid.GetPointData().AddArray(ArrayObject)
+  for counter, name in enumerate(field_names):
+    values = np.ascontiguousarray(df[name].to_numpy(dtype=np.float64))
+    array = numpy_to_vtk(values, deep=1)
+    array.SetName(name)
+    point_data.AddArray(array)
 
     datasetArray = {
-                "text": name,
-                "value": counter,
-                "type": vtkDataObject.FIELD_ASSOCIATION_POINTS,
-            }
-
-    try:
-        datasetArray["range"] = [df[name].min(), df[name].max()]
-    except TypeError as e:
-        log("info", f"Could not compute range for field {name}: {e}")
+        "text": name,
+        "value": counter,
+        "type": vtkDataObject.FIELD_ASSOCIATION_POINTS,
+        "range": [float(np.nanmin(values)), float(np.nanmax(values))] if values.size else [0.0, 1.0],
+    }
     datasetArrays.append(datasetArray)
-    counter += 1
 
   state.dataset_arrays = datasetArrays
-  #log("info", f"dataset =  = {datasetArrays}")
-  #log("info", f"dataset_0 =  = {datasetArrays[0]}")
-  #log("info", f"dataset_0 =  = {datasetArrays[0].get('text'}"))
 
   mesh_mapper.SetInputData(grid)
   mesh_actor.SetMapper(mesh_mapper)
@@ -1212,8 +1008,8 @@ def readRestart(restartFile, reset_active_field, **kwargs):
     # We have loaded a mesh, so enable the exporting of files
     state.export_disabled = False
 
-  # renderer.ResetCamera()
   ctrl.view_update()
+  return True
 
 
 ###############################################################################
@@ -1328,116 +1124,3 @@ def mpl_plot_history():
                transform=ax.transAxes, fontsize=10, color='red')
 
     return fig
-
-def provide_binary_restart_guidance():
-    """Provide helpful guidance for users encountering binary restart files."""
-    log("info", "")
-    log("info", "=== BINARY RESTART FILE INFO ===")
-    log("info", "Binary restart files detected. This is normal for SU2 simulations.")
-    log("info", "")
-    log("info", "Current status: Binary parsing is not yet implemented in SU2GUI.")
-    log("info", "This does not affect your simulation - only the GUI visualization.")
-    log("info", "")
-    log("info", "To enable restart file visualization in SU2GUI:")
-    log("info", "1. Configure SU2 to output ASCII restart files:")
-    log("info", "   - Set OUTPUT_FILES = ['RESTART_ASCII'] in your configuration")
-    log("info", "   - Re-run your simulation to generate .csv restart files")
-    log("info", "")
-    log("info", "2. Convert existing binary files using SU2 tools:")
-    log("info", "   - Use SU2_SOL to convert binary restart files to ASCII format")
-    log("info", "")
-    log("info", "3. Use the File I/O tab in SU2GUI:")
-    log("info", "   - Enable 'ASCII restart output' option")
-    log("info", "   - This will generate .csv files instead of .dat files")
-    log("info", "")
-    log("info", "Note: ASCII restart files (.csv) contain the same data as binary")
-    log("info", "files but are readable by SU2GUI for visualization and analysis.")
-    log("info", "================================")
-
-# Debug function to check history file and state
-def debug_history_state():
-    """Debug function to check the state of history-related variables"""
-    log("info", "=== HISTORY DEBUG INFORMATION ===")
-    log("info", f"Case name: {getattr(state, 'case_name', 'NOT SET')}")
-    log("info", f"History filename: {getattr(state, 'history_filename', 'NOT SET')}")
-
-    if hasattr(state, 'case_name') and hasattr(state, 'history_filename'):
-        history_path = BASE / "user" / state.case_name / state.history_filename
-        log("info", f"History file path: {history_path}")
-        log("info", f"History file exists: {os.path.exists(history_path)}")
-
-        if os.path.exists(history_path):
-            try:
-                file_size = os.path.getsize(history_path)
-                log("info", f"History file size: {file_size} bytes")
-
-                with open(history_path, 'r') as f:
-                    first_lines = [f.readline().strip() for _ in range(3)]
-                log("info", f"First 3 lines: {first_lines}")
-
-            except Exception as e:
-                log("error", f"Error reading history file: {e}")
-
-    # Check state variables
-    log("info", f"state.x length: {len(getattr(state, 'x', []))}")
-    log("info", f"state.ylist length: {len(getattr(state, 'ylist', []))}")
-    log("info", f"state.monitorLinesNames: {getattr(state, 'monitorLinesNames', 'NOT SET')}")
-    log("info", f"state.monitorLinesVisibility: {getattr(state, 'monitorLinesVisibility', 'NOT SET')}")
-    log("info", f"state.global_iter: {getattr(state, 'global_iter', 'NOT SET')}")
-    log("info", "=== END HISTORY DEBUG ===")
-
-# Function to create a sample history file for testing
-def create_sample_history_file(filepath):
-    """Create a sample history file for testing purposes"""
-    try:
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-
-        sample_data = """Outer_Iter,Inner_Iter,Time(min),CL,CD,CL/CD,CMz,CX,CY,CFx,CFy,CMx,CMy,rms[Rho],rms[RhoU],rms[RhoV],rms[RhoE],CLift(Total),CDrag(Total)
-1,1,0.001,0.5000,0.0100,50.000,0.0000,0.0000,0.5000,0.0000,0.5000,0.0000,0.0000,-3.123,-4.567,-5.678,-6.789,0.5000,0.0100
-2,2,0.002,0.5100,0.0098,52.041,0.0001,0.0001,0.5100,0.0001,0.5100,0.0001,0.0001,-3.023,-4.467,-5.578,-6.689,0.5100,0.0098
-3,3,0.003,0.5200,0.0096,54.167,0.0002,0.0002,0.5200,0.0002,0.5200,0.0002,0.0002,-2.923,-4.367,-5.478,-6.589,0.5200,0.0096
-4,4,0.004,0.5300,0.0094,56.383,0.0003,0.0003,0.5300,0.0003,0.5300,0.0003,0.0003,-2.823,-4.267,-5.378,-6.489,0.5300,0.0094
-5,5,0.005,0.5400,0.0092,58.696,0.0004,0.0004,0.5400,0.0004,0.5400,0.0004,0.0004,-2.723,-4.167,-5.278,-6.389,0.5400,0.0092"""
-
-        with open(filepath, 'w') as f:
-            f.write(sample_data)
-
-        log("info", f"Created sample history file: {filepath}")
-        return True
-
-    except Exception as e:
-        log("error", f"Error creating sample history file: {e}")
-        return False
-
-# Function to test history loading
-def test_history_loading():
-    """Test function to verify history loading works correctly"""
-    log("info", "=== TESTING HISTORY LOADING ===")
-
-    # Save current state
-    original_case_name = getattr(state, 'case_name', None)
-
-    # Set up test case
-    test_case_name = "test_history"
-    state.case_name = test_case_name
-
-    # Create test directory and sample file
-    test_dir = BASE / "user" / test_case_name
-    test_file = test_dir / state.history_filename
-
-    if create_sample_history_file(test_file):
-        # Test reading the file
-        try:
-            result = readHistory(test_file)
-            log("info", f"Test result: x={len(result[0]) if result[0] else 0}, y={len(result[1]) if result[1] else 0}")
-            log("info", "History loading test: PASSED")
-        except Exception as e:
-            log("error", f"History loading test: FAILED - {e}")
-    else:
-        log("error", "Could not create test file")
-
-    # Restore original state
-    if original_case_name:
-        state.case_name = original_case_name
-
-    log("info", "=== END HISTORY LOADING TEST ===")

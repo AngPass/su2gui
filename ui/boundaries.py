@@ -571,26 +571,31 @@ def generate_python_wrapper_with_dynamic_temp():
         if boundary_name not in state.jsonData['MARKER_PYTHON_CUSTOM']:
             state.jsonData['MARKER_PYTHON_CUSTOM'].append(boundary_name)
 
-        # Import the wrapper generation function        from core.su2_py_wrapper import generate_dynamic_temperature_wrapper
-        # Generate the wrapper with dynamic temperature and variables
+        cfg_name = getattr(state, 'filename_cfg_export', 'config.cfg') or 'config.cfg'
+
+        # Save the configuration files first: the wrapper generation then patches the
+        # written cfg (MARKER_ISOTHERMAL / MARKER_PYTHON_CUSTOM), which would otherwise
+        # be overwritten by a later save.
+        try:
+            from core.su2_io import save_json_cfg_file
+            save_json_cfg_file(
+                filename_json_export=getattr(state, 'filename_json_export', 'config.json') or 'config.json',
+                filename_cfg_export=cfg_name
+            )
+        except ImportError:
+            # If su2_io doesn't exist, save JSON manually
+            log("warning", "Could not import save_json_cfg_file, saving JSON manually")
+
+        # Generate the wrapper with dynamic temperature and variables; it runs the case cfg
         wrapper_path = generate_dynamic_temperature_wrapper(
             boundary_marker=boundary_name,
             base_temperature=base_temp,
             filename_py_export=getattr(state, 'python_wrapper_filename', 'run_su2_dynamic.py') or 'run_su2_dynamic.py',
             variables=variables,
             temperature_formula=custom_function,
-            wrapper_type=getattr(state, 'wrapper_type', 'simple')  # Force simple position-based
+            wrapper_type=getattr(state, 'wrapper_type', 'simple'),  # Force simple position-based
+            config_filename=cfg_name,
         )
-
-        # Also save the updated configuration files - import function that exists
-        try:
-            from core.su2_io import save_json_cfg_file
-            save_json_cfg_file(                filename_json_export=getattr(state, 'filename_json_export', 'config.json') or 'config.json',
-                filename_cfg_export=getattr(state, 'filename_cfg_export', 'config.cfg') or 'config.cfg'
-            )
-        except ImportError:
-            # If su2_io doesn't exist, save JSON manually
-            log("warning", "Could not import save_json_cfg_file, saving JSON manually")
 
         try:
             import json
@@ -1481,6 +1486,7 @@ def _sync_inlet_type_arrays():
       new_types = [mapping.get(bc.get('bc_subtype'), types[0] if types else 'VELOCITY_INLET') for bc in inlet_markers]
       state.jsonData['INC_INLET_TYPE'] = new_types
     else:
+      # INLET_TYPE is a single enum in SU2: one inlet type for all compressible inlets
       types = state.jsonData.get('INLET_TYPE', [])
       if isinstance(types, str):
         types = [types]
@@ -1490,7 +1496,13 @@ def _sync_inlet_type_arrays():
       }
       default = types[0] if types else 'TOTAL_CONDITIONS'
       new_types = [mapping.get(bc.get('bc_subtype'), default) for bc in inlet_markers]
-      state.jsonData['INLET_TYPE'] = new_types
+      if len(set(new_types)) > 1:
+        log('warn', f'SU2 supports a single INLET_TYPE for all compressible inlets, found {sorted(set(new_types))}; '
+                    f'{new_types[0]} will be used.')
+      if new_types:
+        state.jsonData['INLET_TYPE'] = new_types[0]
+      else:
+        state.jsonData.pop('INLET_TYPE', None)
     state.dirty('jsonData')
   except Exception as e:
     log('warn', f'Failed to sync inlet types: {e}')
