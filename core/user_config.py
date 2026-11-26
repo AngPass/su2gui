@@ -57,6 +57,17 @@ def set_su2_path(path):
     config['su2_cfd_path'] = path
     write_config(config)
 
+def get_slurm_settings():
+    """SLURM settings used the last time ({} if never used)."""
+    value = read_config().get('slurm')
+    return value if isinstance(value, dict) else {}
+
+def set_slurm_settings(settings):
+    """Remember the SLURM settings (and the execution mode) for the next start."""
+    config = read_config()
+    config['slurm'] = dict(settings)
+    write_config(config)
+
 def get_cases_dir():
     """Folder chosen for the cases the last time (None if never chosen)."""
     return read_config().get('cases_dir')

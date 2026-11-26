@@ -28,6 +28,7 @@ if parent_dir not in sys.path:
 from ui.uicard import ui_card, ui_subcard, server
 from trame.widgets import vuetify
 from core.su2_json import *
+from ui.options import option_fields
 
 state, ctrl = server.state, server.controller
 
@@ -104,6 +105,34 @@ def numerics_card():
                 # the name of the list box
                 label="CFL",
             )
+            option_fields([
+                ("CFL_ADAPT", "Adaptive CFL"),
+                ("CFL_ADAPT_PARAM", "Adaptive CFL parameters"),
+            ])
+            option_fields([
+                ("CONV_NUM_METHOD_FLOW", "Convective scheme"),
+                ("MUSCL_FLOW", "MUSCL reconstruction (2nd order)"),
+                ("SLOPE_LIMITER_FLOW", "Slope limiter"),
+                ("VENKAT_LIMITER_COEFF", "Venkatakrishnan limiter coefficient"),
+                ("JST_SENSOR_COEFF", "JST sensor coefficients"),
+                ("TIME_DISCRE_FLOW", "Time discretization"),
+            ], title="Flow")
+            option_fields([
+                ("CONV_NUM_METHOD_TURB", "Convective scheme"),
+                ("MUSCL_TURB", "MUSCL reconstruction"),
+                ("TIME_DISCRE_TURB", "Time discretization"),
+                ("CFL_REDUCTION_TURB", "CFL reduction factor"),
+            ], title="Turbulence", show="physics_turb_idx >= 2")
+            option_fields([
+                ("LINEAR_SOLVER", "Linear solver"),
+                ("LINEAR_SOLVER_PREC", "Preconditioner"),
+                ("LINEAR_SOLVER_ERROR", "Linear solver tolerance"),
+                ("LINEAR_SOLVER_ITER", "Linear solver iterations"),
+            ], title="Linear solver")
+            option_fields([
+                ("MGLEVEL", "Multigrid levels"),
+                ("MGCYCLE", "Multigrid cycle"),
+            ], title="Multigrid")
 
 ###############################################################
 # Numerics - state changes

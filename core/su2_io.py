@@ -46,6 +46,8 @@ BASE = Path(__file__).parent.parent
 
 # catalog of the SU2 options (names, enum values, deprecated names)
 from core import su2_options
+# order and sections of the options in the .cfg file
+from core import cfg_layout
 
 # remove empty lists from dictlist object
 def remove_empty_lists(d):
@@ -272,13 +274,13 @@ def cfg_value(value, variables=None):
 
 
 def build_cfg_text(config, description="", variables=None):
-  """Text of the SU2 .cfg file for the configuration dict ``config``."""
-  lines = [f"{description}  "] if description else []
-  for attribute, value in config.items():
-    text = cfg_value(value, variables)
-    if text is None:
-      continue
-    lines.append(f"{attribute}= {text}")
+  """Text of the SU2 .cfg file for the configuration dict ``config``.
+
+  The options are grouped by menu node and section, in the order of the menu,
+  with commented headers (core/cfg_layout.py).
+  """
+  lines = [description.rstrip("\n"), ""] if description and description.strip() else []
+  lines.extend(cfg_layout.build_cfg_lines(config, lambda value: cfg_value(value, variables)))
   return "\n".join(lines) + "\n"
 
 

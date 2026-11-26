@@ -21,7 +21,26 @@ from ui.uicard import ui_card, ui_subcard, server
 from trame.widgets import vuetify
 from core.su2_json import *
 from ui.materials import *
+from ui.options import option_fields
 state, ctrl = server.state, server.controller
+
+# solvers set by the "Solver" and "Turbulence model" selections of the Physics card
+STANDARD_SOLVERS = ("EULER", "NAVIER_STOKES", "RANS", "INC_EULER", "INC_NAVIER_STOKES", "INC_RANS")
+
+
+def solver_indices(solver, turb_model=None):
+    """(physics_comp_idx, physics_turb_idx) shown in the Physics card for a SOLVER."""
+    solver = str(solver or "").upper()
+    comp = 0 if "INC" in solver else 1
+    if "EULER" in solver:
+        turb = 0
+    elif "NAVIER_STOKES" in solver:
+        turb = 1
+    elif "RANS" in solver:
+        turb = 2 if str(turb_model or "SA").upper() == "SA" else 3
+    else:
+        turb = 0
+    return comp, turb
 
 # show the material dialog cards
 state.show_wall_function_dialog_card = False
@@ -274,6 +293,21 @@ def physics_card():
                                 disabled=("!wall_function",0),
                                 icon="mdi-dots-vertical"):
                 vuetify.VIcon("mdi-dots-vertical",density="compact",color="green")
+
+        # any SU2 solver (NEMO, FEM, heat, elasticity, multiphysics, ...) and problem type
+        option_fields([
+            ("SOLVER", "SU2 solver (all solvers)"),
+            ("MATH_PROBLEM", "Problem (direct / adjoint)"),
+            ("KIND_TRANS_MODEL", "Transition model"),
+            ("KIND_SGS_MODEL", "Subgrid scale model (LES)"),
+            ("HYBRID_RANSLES", "Hybrid RANS/LES model"),
+            ("KIND_SCALAR_MODEL", "Scalar transport (species) model"),
+            ("RADIATION_MODEL", "Radiation model"),
+            ("AXISYMMETRIC", "Axisymmetric (2D)"),
+            ("GRAVITY_FORCE", "Gravity force"),
+            ("MULTIZONE", "Multizone problem"),
+            ("CONFIG_LIST", "Zone config files (multizone)"),
+        ], title="Solver and models")
 
 
 ###############################################################
@@ -556,7 +590,8 @@ def update_physics_comp(physics_comp_idx, **kwargs):
       state.LMaterialsConductivity = LMaterialsConductivityIncomp
       log("info", "       selecting incompressible boundary type ")
       
-      state.LBoundariesMain+= [{"text": "Supersonic Inlet", "value": 5},{"text": "Supersonic Outlet", "value": 6}]
+      # (not +=: this function is called each time the configuration is read)
+      state.LBoundariesMain = state.LBoundariesMain[:5] + [{"text": "Supersonic Inlet", "value": 5},{"text": "Supersonic Outlet", "value": 6}]
       state.LBoundariesInlet= [
         {"text": "Velocity inlet", "value": 0},
         {"text": "Pressure inlet", "value": 1},
@@ -586,8 +621,18 @@ def update_physics_turb(physics_turb_idx, **kwargs):
 
     compressible = bool(state.physics_comp_idx)
 
+    # A solver that is not one of the 6 of the selections (NEMO_*, FEM_*, LES, HEAT_EQUATION_FVM,
+    # ELASTICITY, MULTIPHYSICS, ... set in "SU2 solver" or read from a .cfg) is kept as long as
+    # the selections still describe it: it is only replaced when the user picks another model.
+    current = str(state.jsonData.get('SOLVER', '') or '').upper()
+    keep_solver = (current not in STANDARD_SOLVERS and current != "" and
+                   solver_indices(current, state.jsonData.get('KIND_TURB_MODEL')) ==
+                   (int(compressible), physics_turb_idx))
+
     # physics_turb_idx=0 = Euler
-    if (physics_turb_idx==0):
+    if keep_solver:
+        pass
+    elif (physics_turb_idx==0):
         if (compressible==True):
             state.jsonData['SOLVER']="EULER"
             state.jsonData['KIND_TURB_MODEL']="NONE"

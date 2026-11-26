@@ -119,6 +119,9 @@ from ui.initialization import *
 from ui.fileio import *
 # gittree menu : import variables tab                                        #
 from ui.variables import *
+
+from ui.options import (flow_conditions_card, time_domain_card, dynamic_mesh_card, design_card,
+                        options_panel_card)
 # where the cases are stored (--cases-dir / SU2GUI_CASES_DIR) and the cfg writer
 from core.paths import case_dir, cases_root, set_cases_root
 from core.su2_io import write_case_configuration, _write_if_changed, report_option_issues
@@ -435,24 +438,36 @@ id_physics    = pipeline.add_node(parent=id_root,       name="Physics",
 id_materials  = pipeline.add_node(parent=id_physics,    name="Materials",
                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
 # 4
-id_numerics   = pipeline.add_node(parent=id_materials,  name="Numerics",
+id_flowcond   = pipeline.add_node(parent=id_materials,  name="Flow Conditions",
                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
 # 5
-id_boundaries = pipeline.add_node(parent=id_numerics,   name="Boundaries",
+id_numerics   = pipeline.add_node(parent=id_flowcond,   name="Numerics",
                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
 # 6
-id_initial    = pipeline.add_node(parent=id_boundaries, name="Initialization",
+id_time       = pipeline.add_node(parent=id_numerics,   name="Time Domain",
                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
 # 7
-# id_monitor    = pipeline.add_node(parent=id_initial,    name="Monitor",
-#                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
+id_boundaries = pipeline.add_node(parent=id_time,       name="Boundaries",
+                                  subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
 # 8
-id_fileio     = pipeline.add_node(parent=id_initial,    name="File I/O",
+id_dynmesh    = pipeline.add_node(parent=id_boundaries, name="Dynamic Mesh",
                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
 # 9
+id_initial    = pipeline.add_node(parent=id_dynmesh,    name="Initialization",
+                                  subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
+# id_monitor    = pipeline.add_node(parent=id_initial,    name="Monitor",
+#                                   subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
+# 10
+id_design     = pipeline.add_node(parent=id_initial,    name="Adjoint & Design",
+                                  subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
+# 11
+id_fileio     = pipeline.add_node(parent=id_design,     name="File I/O",
+                                  subui="none", visible=1, color="#42A5F5", actions=["collapsible"])
+# 12
 id_solver     = pipeline.add_node(parent=id_fileio,    name="Solver",
                                   subui="none", visible=1, color="#00ACC1", actions=["collapsible"])
-# 10
+# the order of the nodes is the order of the sections in the .cfg (core/cfg_layout.NODES)
+# 13
 # id_variables  = pipeline.add_node(parent=id_solver,    name="Variables",
 #                                  subui="none", visible=1, color="#00ACC1", actions=["collapsible"])
 
@@ -2032,6 +2047,15 @@ with SinglePageWithDrawerLayout(server) as layout:
 
         log("info", "initialize solver card")
         solver_card()
+        #
+
+        # menu nodes made of SU2 option fields (ui/options.py)
+        flow_conditions_card()
+        time_domain_card()
+        dynamic_mesh_card()
+        design_card()
+        # below the card of every node: all the SU2 options of that node
+        options_panel_card()
         #
 
         # dialog cards - these are predefined 'popup windows'

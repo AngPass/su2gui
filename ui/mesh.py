@@ -95,6 +95,13 @@ def mesh_card():
                 rows="5",
                 v_model=("meshText", "blablabla"),
         )
+        from ui.options import option_fields
+        option_fields([
+            ("MESH_FILENAME", "Mesh file"),
+            ("MESH_FORMAT", "Mesh format"),
+            ("MESH_OUT_FILENAME", "Output mesh file"),
+            ("MULTIZONE_MESH", "Multizone mesh file"),
+        ])
 
 ###############################################################
 # PIPELINE SUBCARD : MESH

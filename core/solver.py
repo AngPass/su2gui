@@ -26,7 +26,7 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 from ui.uicard import ui_card, ui_subcard, server
-from trame.widgets import vuetify
+from trame.widgets import vuetify, html
 from core.su2_json import *
 from core.su2_io import save_su2mesh, save_json_cfg_file
 from core.config_validator import SU2ConfigValidator
@@ -48,6 +48,8 @@ from vtkmodules.util.numpy_support import numpy_to_vtk
 from core import su2_files
 # location of the cases (--cases-dir / SU2GUI_CASES_DIR)
 from core import paths
+# batch jobs (sbatch)
+from core import slurm
 
 # import the grid from the mesh module
 from ui.mesh import *
@@ -244,8 +246,13 @@ async def start_countdown(result):
                     log("error", f"Error while updating the solver monitor: {e}", detail=traceback.format_exc())
 
                 # check that the job is still running
+                if isinstance(proc_SU2, slurm.SlurmJob) and proc_SU2.returncode is None:
+                    state.slurm_job_status = f"Job {proc_SU2.job_id}: {proc_SU2.state}"
                 if proc_SU2 is None or proc_SU2.poll() is not None:
                     returncode = None if proc_SU2 is None else proc_SU2.returncode
+                    if isinstance(proc_SU2, slurm.SlurmJob):
+                        state.slurm_job_status = f"Job {proc_SU2.job_id}: {proc_SU2.state}"
+                        log("info", f"SLURM job {proc_SU2.job_id} ended: {proc_SU2.state}")
                     log("info", f"SU2 job has stopped (return code {returncode})")
                     _set_solver_stopped()
                     # final update with the last files written by SU2
@@ -293,7 +300,66 @@ def solver_card():
                 label="Iterations",
             )
 
-        with vuetify.VBtn("Solve",click=su2_play):
+        from ui.options import option_fields
+        option_fields([
+            ("CONV_STARTITER", "Start convergence check at iteration"),
+            ("CONV_CAUCHY_ELEMS", "Cauchy criterion: number of elements"),
+            ("CONV_CAUCHY_EPS", "Cauchy criterion: epsilon"),
+            ("OUTER_ITER", "Outer iterations (multizone)"),
+        ], title="Convergence")
+
+        # ---------------- where SU2 runs: this machine, or a SLURM job
+        vuetify.VSelect(
+            v_model=("run_mode", state.run_mode),
+            items=("run_modes", state.run_modes),
+            label="Execution",
+            dense=True, outlined=True, hide_details=True, classes="mt-4",
+        )
+        with vuetify.VExpansionPanels(v_show="run_mode == 'slurm'", accordion=True, flat=True,
+                                      classes="mt-2"):
+            with vuetify.VExpansionPanel():
+                with vuetify.VExpansionPanelHeader(classes="grey lighten-2 py-1",
+                                                   style="min-height: 36px;"):
+                    html.Div("SLURM settings", classes="text-subtitle-2")
+                with vuetify.VExpansionPanelContent(classes="pt-2"):
+                    def _field(key, label, cols=6, **props):
+                        with vuetify.VCol(cols=cols, classes="py-1 px-1"):
+                            vuetify.VTextField(v_model=(f"slurm_{key}",), label=label, dense=True,
+                                               outlined=True, hide_details=True, **props)
+                    with vuetify.VRow(classes="ma-0"):
+                        _field("job_name", "Job name")
+                        _field("time", "Time (hh:mm:ss)", placeholder="01:00:00")
+                        _field("partition", "Partition")
+                        _field("account", "Account")
+                        _field("nodes", "Nodes", cols=4)
+                        _field("ntasks", "ntasks", cols=4)
+                        _field("ntasks_per_node", "tasks/node", cols=4, title="--ntasks-per-node")
+                        _field("cpus_per_task", "cpus/task", cols=4, title="--cpus-per-task")
+                        _field("mem", "Mem", cols=4, placeholder="8G", title="--mem (e.g. 8G)")
+                        _field("qos", "QOS", cols=4)
+                        with vuetify.VCol(cols=4, classes="py-1 px-1"):
+                            vuetify.VSelect(v_model=("slurm_launcher",), items=("slurm_launchers",),
+                                            label="Launcher", dense=True, outlined=True,
+                                            hide_details=True)
+                        _field("su2_cfd", "SU2_CFD on the cluster", cols=8,
+                               placeholder="default: SU2_CFD path of SU2GUI")
+                    vuetify.VTextarea(v_model=("slurm_setup",), label="Environment (module load ..., source ...)",
+                                      rows=2, auto_grow=True, dense=True, outlined=True, hide_details=True,
+                                      classes="mt-2", style="font-family: monospace;")
+                    vuetify.VTextarea(v_model=("slurm_extra_sbatch",),
+                                      label="Extra #SBATCH options (one per line, e.g. --exclusive)",
+                                      rows=2, auto_grow=True, dense=True, outlined=True, hide_details=True,
+                                      classes="mt-2", style="font-family: monospace;")
+                    vuetify.VBtn("Preview / write sbatch", small=True, click=preview_slurm_script,
+                                 classes="mt-2")
+                    html.Pre("{{ slurm_preview }}", v_if="slurm_preview",
+                             style="font-size: 11px; background: #f5f5f5; padding: 6px; "
+                                   "white-space: pre-wrap; overflow-wrap: anywhere;",
+                             classes="mt-2")
+        html.Div("{{ slurm_job_status }}", v_show="run_mode == 'slurm' && slurm_job_status",
+                 classes="text-caption mt-1")
+
+        with vuetify.VBtn("Solve",click=su2_play, classes="mt-3"):
             vuetify.VIcon("{{solver_icon}}",color="purple")
 
         # Validation panel (nijso temporarily removed, will be added back in a future update)
@@ -406,17 +472,107 @@ def update_material(convergence_val, **kwargs):
       log("error", "Invalid value for CONV_RESIDUAL_MINVAL in solver")
 
 
+###############################################################
+# Execution with SLURM (core/slurm.py)
+###############################################################
+state.run_modes = [
+    {"text": "Local (this machine)", "value": "local"},
+    {"text": "SLURM cluster (sbatch)", "value": "slurm"},
+]
+state.slurm_launchers = list(slurm.LAUNCHERS)
+state.slurm_preview = ""
+state.slurm_job_status = ""
+try:
+    from core.user_config import get_slurm_settings
+    _saved_slurm = get_slurm_settings()
+except Exception:
+    _saved_slurm = {}
+state.run_mode = _saved_slurm.get("run_mode", "local")
+for _key, _value in slurm.settings_from(_saved_slurm).items():
+    setattr(state, f"slurm_{_key}", _value)
+
+
+def slurm_settings_from_state():
+    return slurm.settings_from({key: state[f"slurm_{key}"] for key in slurm.DEFAULTS})
+
+
+def _slurm_script_text(su2_cfd_path):
+    return slurm.build_script(slurm_settings_from_state(), state.filename_cfg_export, su2_cfd_path)
+
+
+def preview_slurm_script():
+    """Show the batch script that Solve will submit, and write it in the case folder."""
+    su2_cfd_path = getattr(state, "su2_cfd_path", None)
+    text = _slurm_script_text(su2_cfd_path)
+    state.slurm_preview = text
+    for problem in slurm.validate(slurm_settings_from_state()):
+        log("warn", f"SLURM settings: {problem}")
+    if checkCaseName():
+        active_case_dir().mkdir(parents=True, exist_ok=True)
+        (active_case_dir() / slurm.SCRIPT_NAME).write_text(text, encoding="utf-8", newline="\n")
+        log("info", f"Wrote {active_case_dir() / slurm.SCRIPT_NAME}")
+
+
+def _submit_slurm_job(su2_cfd_path):
+    """Write the batch script in the case folder and submit it. Returns a SlurmJob or None."""
+    settings = slurm_settings_from_state()
+    problems = slurm.validate(settings)
+    if problems:
+        log("error", "Invalid SLURM settings:  \n" + "  \n".join(f"- {p}" for p in problems))
+        return None
+    try:
+        from core.user_config import set_slurm_settings
+        set_slurm_settings({**settings, "run_mode": "slurm"})
+    except Exception as e:
+        log("warn", f"Could not remember the SLURM settings: {e}")
+
+    case = active_case_dir()
+    text = slurm.build_script(settings, state.filename_cfg_export, su2_cfd_path)
+    (case / slurm.SCRIPT_NAME).write_text(text, encoding="utf-8", newline="\n")
+    state.slurm_preview = text
+    # SLURM appends to the output files: start from empty ones (the Logs tab reads su2.out)
+    for name in ("su2.out", "su2.err"):
+        (case / name).write_text("")
+    try:
+        job_id = slurm.submit(case)
+    except Exception as e:
+        log("error", f"Could not submit the SLURM job: {e}")
+        state.slurm_job_status = f"Submission failed: {e}"
+        return None
+    log("info", f"### Submitted SLURM job {job_id} ({case / slurm.SCRIPT_NAME})")
+    state.slurm_job_status = f"Job {job_id} submitted"
+    return slurm.SlurmJob(job_id)
+
+
+@state.change("run_mode")
+def _on_run_mode(run_mode, **kwargs):
+    try:
+        from core.user_config import get_slurm_settings, set_slurm_settings
+        if get_slurm_settings().get("run_mode", "local") != run_mode:
+            set_slurm_settings({**get_slurm_settings(), "run_mode": run_mode})
+    except Exception:
+        pass
+    if run_mode == "slurm" and not slurm.available():
+        log("warn", "sbatch is not available on the machine running SU2GUI: "
+                    "the job can only be submitted from a node of the SLURM cluster.")
+
+
 # start SU2 solver
 def su2_play():
     global proc_SU2
 
     log("info", "=== SOLVE BUTTON CLICKED ===")
 
+    # SLURM: the job runs on a compute node, SU2_CFD does not need to exist here
+    slurm_mode = state.run_mode == "slurm"
+
     # Use stored SU2_CFD path or fallback to "SU2_CFD" if not set
     su2_cfd_path = getattr(state, "su2_cfd_path", None)
     log("info", f"Initial SU2 path: {su2_cfd_path}")
 
-    if not su2_cfd_path:
+    if slurm_mode:
+        pass
+    elif not su2_cfd_path:
         # Try to get from config as fallback
         try:
             from core.user_config import get_su2_path
@@ -436,7 +592,7 @@ def su2_play():
             return
 
     # Check if SU2_CFD executable exists
-    if not os.path.exists(su2_cfd_path):
+    if not slurm_mode and not os.path.exists(su2_cfd_path):
         log("error", f" SU2_CFD executable not found at: {su2_cfd_path}")
         log("error", "Please check the SU2_CFD path configuration.")
         state.solver_running = False
@@ -508,6 +664,15 @@ def su2_play():
         state.last_modified_su2_log_len = 0
         state.su2_logs = ""
 
+        if slurm_mode:
+            proc_SU2 = _submit_slurm_job(su2_cfd_path)
+            if proc_SU2 is None:
+                _set_solver_stopped()
+                return
+            state.keep_updating = True
+            start_countdown(proc_SU2)
+            return
+
         # run SU2_CFD with config.cfg
         try:
             with open(active_case_dir() / "su2.out", "w") as outfile:
@@ -538,7 +703,7 @@ def su2_play():
         start_countdown(proc_SU2)
 
     else:
-        # Stop solver
+        # Stop solver (local process, or scancel of the SLURM job)
         state.solver_icon = "mdi-play-circle"
         log("info", "### SU2 solver stopped!")
         log("debug", f"process= = {type(proc_SU2)}")

@@ -25,6 +25,7 @@ from trame.widgets import vuetify
 from core.su2_json import *
 from ui.materials import *
 from core.logger import log
+from ui.options import option_fields
 state, ctrl = server.state, server.controller
 
 # for dialog cards:
@@ -811,6 +812,14 @@ def boundaries_card_parent():
     # note that we want to show the card only for the children of the head/parent node
     with ui_card_parent_only(title="Boundaries", parent_ui_name="Boundaries"):
         log("info", "     ## Boundaries Selection ##")
+        html_note = "Select a boundary below the Boundaries node to set its condition."
+        vuetify.VCardText(html_note, classes="text-caption grey--text pa-0")
+        option_fields([
+            ("MARKER_PLOTTING", "Plotted markers (surface output)"),
+            ("MARKER_MONITORING", "Monitored markers (forces)"),
+            ("MARKER_ANALYZE", "Analyzed markers (averages)"),
+            ("MARKER_ANALYZE_AVERAGE", "Averaging of analyzed markers"),
+        ], title="Surface identification")
 
         #vuetify.VTextField(
         #    #v_model=("idx", 0),

@@ -87,9 +87,11 @@ def add_new_property():
     log("info", f"Added {state.new_config_key} : {state.new_config_value}({type(state.new_config_value)})")
 
 def update_config_str():
+    """Show the .cfg as it is written (options grouped in the order of the menu)."""
     createjsonMarkers()
-    max_key_len = max(len(key) for key in state.jsonData.keys())  
-    state.config_str = "  \n".join([f"\t{key:{max_key_len}} : {value}" for key, value in state.jsonData.items()])
+    from core.su2_io import build_cfg_text, current_variables
+    text = build_cfg_text(state.jsonData or {}, state.config_desc or "", current_variables())
+    state.config_str = "```\n" + text + "```"
 
 @state.change("key")
 def update_new_config_key(key, **kwargs):

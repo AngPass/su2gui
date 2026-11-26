@@ -28,6 +28,7 @@ from ui.uicard import ui_card, ui_subcard, server
 from trame.widgets import vuetify
 from core.su2_json import *
 from core import su2_files
+from ui.options import option_fields
 
 state, ctrl = server.state, server.controller
 
@@ -196,6 +197,17 @@ def fileio_card():
                 dense=True,
                 hide_details=True,
               )
+
+        option_fields([
+            ("OUTPUT_FILES", "Output files"),
+            ("SCREEN_OUTPUT", "Screen output fields"),
+            ("HISTORY_OUTPUT", "History output fields"),
+            ("VOLUME_OUTPUT", "Volume output fields"),
+            ("TABULAR_FORMAT", "History file format"),
+            ("SCREEN_WRT_FREQ_INNER", "Screen output frequency"),
+            ("WRT_FORCES_BREAKDOWN", "Write forces breakdown"),
+            ("OUTPUT_PRECISION", "Output precision (digits)"),
+        ], title="Output")
 #
 @state.change("restart_filename")
 def update_material(restart_filename, **kwargs):
